@@ -1,5 +1,7 @@
 # vim swap files
 *.sw[op]
+# object files
+*.o
 
 # http://www.gnu.org/software/automake
 

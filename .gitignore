@@ -2,6 +2,8 @@
 *.sw[op]
 # object files
 *.o
+# backup files
+*~
 
 # http://www.gnu.org/software/automake
 

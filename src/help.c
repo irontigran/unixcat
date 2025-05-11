@@ -1,0 +1,21 @@
+#include <stdio.h>
+
+#include "config.h"
+#include "help.h"
+
+void usage(const char *progname) {
+    fprintf(stderr,
+            "Usage: %s [-l] SOCKET\n"
+            "Interact with unix domain sockets from the command line.\n\n"
+            "Options:\n"
+            "  -l   listen on the specified socket\n"
+            "  --help       display this help and exit\n"
+            "  --version    output version information and exit\n\n"
+            "Examples:\n"
+            "  ucat /tmp/sock       -> connect to /tmp/sock\n"
+            "  ucat -l /tmp/sock    -> listen on /tmp/sock\n", progname, progname, progname);
+}
+
+void version() {
+    fprintf(stderr, "%s\n", VERSION);
+}

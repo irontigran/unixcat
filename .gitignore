@@ -1,5 +1,7 @@
-# our executable
+# our executable, tarball, and man page
 ucat
+ucat-*.tar.gz
+ucat.1
 # vim swap files
 *.sw[op]
 # object files

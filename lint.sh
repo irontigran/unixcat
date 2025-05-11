@@ -2,4 +2,4 @@
 
 shellcheck ./*.sh
 
-cppcheck src/*.c
+cppcheck --std=c11 src/*.c

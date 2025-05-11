@@ -1,3 +1,5 @@
+# our executable
+ucat
 # vim swap files
 *.sw[op]
 # object files

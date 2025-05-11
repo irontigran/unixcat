@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+
+#include "sock.h"
 
 int main(int argc, char **argv) {
     int opt;
@@ -21,6 +24,10 @@ int main(int argc, char **argv) {
     char *path = argv[optind];
     if (listen) {
         printf("Will listen on %s\n", path);
+        if (serv_listen(path) < 0) {
+            perror("serv_listen:");
+            exit(EXIT_FAILURE);
+        }
     } else {
         printf("Will connect to %s\n", path);
     }
@@ -29,3 +36,4 @@ usage_exit:
     fprintf(stderr, "Usage: %s [-l] path\n", argv[0]);
     exit(EXIT_FAILURE);
 }
+

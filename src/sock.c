@@ -19,7 +19,6 @@ int serv_listen(const char *path) {
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         return -2;
     }
-    unlink(path);
 
     memset(&un, 0, sizeof(un));
     un.sun_family = AF_UNIX;

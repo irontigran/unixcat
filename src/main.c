@@ -47,12 +47,12 @@ int main(int argc, char **argv) {
     if (listen) {
         int listenfd;
         if ((listenfd = serv_listen(path)) < 0) {
-            perror("serv_listen:");
+            perror("on bind");
             exit(EXIT_FAILURE);
         }
         int clientfd;
         if ((clientfd = serv_accept(listenfd)) < 0) {
-            perror("serv_accept:");
+            perror("on accept");
             exit(EXIT_FAILURE);
         }
         serv_recv_and_print(clientfd);

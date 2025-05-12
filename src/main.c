@@ -10,7 +10,6 @@
 #include "serv.h"
 
 int main(int argc, char **argv) {
-    int opt;
     bool listen = false;
 
     int option_index = 0;
@@ -24,9 +23,6 @@ int main(int argc, char **argv) {
     int c;
     while ((c = getopt_long(argc, argv, "+l", long_options, &option_index)) !=
            -1) {
-        if (c == -1) {
-            goto usage_exit;
-        }
         switch (c) {
             case 0:
                 if (option_index == 0) {
@@ -49,7 +45,7 @@ int main(int argc, char **argv) {
     if (optind >= argc) {
         goto usage_exit;
     }
-    char *path = argv[optind];
+    const char *path = argv[optind];
     if (listen) {
         int listenfd;
         if ((listenfd = Serv_listen(path)) < 0) {

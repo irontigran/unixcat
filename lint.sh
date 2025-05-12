@@ -2,5 +2,5 @@
 
 shellcheck ./*.sh
 
-cppcheck --std=c11 src/*.c
-cppcheck --std=c11 include/*.h
+cppcheck --enable=all --std=c11 -Iinclude -I. --suppress=missingIncludeSystem \
+    src/*.c

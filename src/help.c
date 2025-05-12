@@ -8,7 +8,7 @@ void usage(const char *progname) {
             "Usage: %s [-l] SOCKET\n"
             "Interact with unix domain sockets from the command line.\n\n"
             "Options:\n"
-            "  -l   listen on the specified socket\n"
+            "  -l, --listen listen on the specified socket\n"
             "  --help       display this help and exit\n"
             "  --version    output version information and exit\n\n"
             "Examples:\n"

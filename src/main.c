@@ -18,7 +18,9 @@ int main(int argc, char **argv) {
         (struct option){
             .name = "help", .has_arg = no_argument, .flag = NULL, .val = 0},
         (struct option){
-            .name = "version", .has_arg = no_argument, .flag = NULL, .val = 0}};
+            .name = "version", .has_arg = no_argument, .flag = NULL, .val = 0},
+        (struct option){
+            .name = "listen", .has_arg = no_argument, .flag = NULL, .val = 'l'}};
     int c;
     while ((c = getopt_long(argc, argv, "+l", long_options, &option_index)) !=
            -1) {
@@ -29,11 +31,12 @@ int main(int argc, char **argv) {
             case 0:
                 if (option_index == 0) {
                     usage(argv[0]);
+                    exit(EXIT_SUCCESS);
                 }
                 if (option_index == 1) {
                     version();
+                    exit(EXIT_SUCCESS);
                 }
-                exit(EXIT_SUCCESS);
                 break;
             case 'l':
                 listen = true;

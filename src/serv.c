@@ -7,9 +7,9 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "sock.h"
+#include "serv.h"
 
-int serv_listen(const char *path) {
+int Serv_listen(const char *path) {
     struct sockaddr_un un;
     if (strlen(path) >= sizeof(un.sun_path)) {
         errno = ENAMETOOLONG;
@@ -48,7 +48,7 @@ err:
     return ret;
 }
 
-int serv_accept(int fd) {
+int Serv_accept(int fd) {
     int newfd;
     if ((newfd = accept(fd, NULL, NULL)) < 0) {
         return -1;
@@ -56,7 +56,7 @@ int serv_accept(int fd) {
     return newfd;
 }
 
-void serv_recv_and_print(int fd) {
+void Serv_recv_and_print(int fd) {
     const size_t buflen = 256;
     char *buf[buflen];
     ssize_t recvd;

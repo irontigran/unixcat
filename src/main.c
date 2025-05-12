@@ -6,7 +6,7 @@
 #include <getopt.h>
 
 #include "help.h"
-#include "sock.h"
+#include "serv.h"
 
 int main(int argc, char **argv) {
     int opt;
@@ -46,16 +46,16 @@ int main(int argc, char **argv) {
     char *path = argv[optind];
     if (listen) {
         int listenfd;
-        if ((listenfd = serv_listen(path)) < 0) {
+        if ((listenfd = Serv_listen(path)) < 0) {
             perror("on bind");
             exit(EXIT_FAILURE);
         }
         int clientfd;
-        if ((clientfd = serv_accept(listenfd)) < 0) {
+        if ((clientfd = Serv_accept(listenfd)) < 0) {
             perror("on accept");
             exit(EXIT_FAILURE);
         }
-        serv_recv_and_print(clientfd);
+        Serv_recv_and_print(clientfd);
     } else {
         printf("Will connect to %s\n", path);
     }

@@ -12,7 +12,7 @@ int Cli_conn(const char *dst, const char *src) {
         return -1;
     }
 
-    int fd, ret;
+    int fd, ret, tmperr;
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         return -1;
     }
@@ -44,9 +44,9 @@ int Cli_conn(const char *dst, const char *src) {
     }
     return fd;
 err:
-    int tmp = errno;
+    tmperr = errno;
     close(fd);
-    errno = tmp;
+    errno = tmperr;
     return ret;
 }
 

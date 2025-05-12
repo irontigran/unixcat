@@ -41,7 +41,7 @@ int Serv_listen(const char *path) {
         goto err;
     }
     return fd;
-err:
+err:;
     int tmperr = errno;
     close(fd);
     errno = tmperr;

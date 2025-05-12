@@ -68,12 +68,12 @@ void Serv_recv_and_print(int fd) {
             if (ret == 0) {
                 fprintf(stderr, "unexpected EOF");
             } else if (ret < 0) {
-                perror("write:");
+                perror("write");
             }
             written += ret;
         }
     }
     if (recvd < 0) {
-        perror("read:");
+        perror("read");
     }
 }

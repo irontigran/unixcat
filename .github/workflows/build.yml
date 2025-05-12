@@ -1,0 +1,21 @@
+name: build
+on:
+  push:
+    branches:
+      - master
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install help2man
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure
+        run: |
+          autoreconf --install
+          ./configure
+      - name: Build
+        run: make -j4

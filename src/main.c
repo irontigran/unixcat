@@ -11,6 +11,7 @@
 
 int main(int argc, char **argv) {
     bool listen = false;
+    const char *source = NULL;
 
     int option_index = 0;
     static struct option long_options[] = {
@@ -19,7 +20,12 @@ int main(int argc, char **argv) {
         (struct option){
             .name = "version", .has_arg = no_argument, .flag = NULL, .val = 0},
         (struct option){
-            .name = "listen", .has_arg = no_argument, .flag = NULL, .val = 'l'}};
+            .name = "listen", .has_arg = no_argument, .flag = NULL, .val = 'l'},
+        (struct option){.name = "source",
+                        .has_arg = required_argument,
+                        .flag = NULL,
+                        .val = 's'},
+        (struct option){.name = NULL, .has_arg = 0, .flag = NULL, .val = 0}};
     int c;
     while ((c = getopt_long(argc, argv, "+l", long_options, &option_index)) !=
            -1) {
@@ -36,6 +42,9 @@ int main(int argc, char **argv) {
                 break;
             case 'l':
                 listen = true;
+                break;
+            case 's':
+                source = optarg;
                 break;
             default:
                 goto usage_exit;
@@ -60,7 +69,7 @@ int main(int argc, char **argv) {
         Serv_recv_and_print(clientfd);
     } else {
         int clientfd;
-        if ((clientfd = Cli_conn(path)) < 0) {
+        if ((clientfd = Cli_conn(path, source)) < 0) {
             perror("on connect");
             exit(EXIT_FAILURE);
         }

@@ -1,0 +1,6 @@
+[Source Addresses]
+In connect mode, you can specify what source address to connect from:
+
+ucat -s /tmp/src /tmp/dest
+
+As with listening on a pathname socket, the socket will persist after the program exits.

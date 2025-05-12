@@ -66,7 +66,7 @@ void Serv_recv_and_print(int fd) {
             ssize_t ret;
             ret = write(STDOUT_FILENO, buf + written, recvd - written);
             if (ret == 0) {
-                fprintf(stderr, "unexpected EOF");
+                fprintf(stderr, "unexpected EOF\n");
             } else if (ret < 0) {
                 perror("write");
             }

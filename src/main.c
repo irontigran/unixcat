@@ -1,10 +1,11 @@
 #include <errno.h>
+#include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <getopt.h>
 
+#include "cli.h"
 #include "help.h"
 #include "serv.h"
 
@@ -14,11 +15,13 @@ int main(int argc, char **argv) {
 
     int option_index = 0;
     static struct option long_options[] = {
-        (struct option) {.name="help",      .has_arg=no_argument,   .flag=NULL, .val=0},
-        (struct option) {.name="version",   .has_arg=no_argument,   .flag=NULL, .val=0}
-    };
+        (struct option){
+            .name = "help", .has_arg = no_argument, .flag = NULL, .val = 0},
+        (struct option){
+            .name = "version", .has_arg = no_argument, .flag = NULL, .val = 0}};
     int c;
-    while ((c = getopt_long(argc, argv, "+l", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "+l", long_options, &option_index)) !=
+           -1) {
         if (c == -1) {
             goto usage_exit;
         }
@@ -57,7 +60,12 @@ int main(int argc, char **argv) {
         }
         Serv_recv_and_print(clientfd);
     } else {
-        printf("Will connect to %s\n", path);
+        int clientfd;
+        if ((clientfd = Cli_conn(path)) < 0) {
+            perror("on connect");
+            exit(EXIT_FAILURE);
+        }
+        Cli_send(clientfd);
     }
     exit(EXIT_SUCCESS);
 usage_exit:

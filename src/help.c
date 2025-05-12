@@ -13,9 +13,8 @@ void usage(const char *progname) {
             "  --version    output version information and exit\n\n"
             "Examples:\n"
             "  ucat /tmp/sock       -> connect to /tmp/sock\n"
-            "  ucat -l /tmp/sock    -> listen on /tmp/sock\n", progname, progname, progname);
+            "  ucat -l /tmp/sock    -> listen on /tmp/sock\n",
+            progname);
 }
 
-void version() {
-    fprintf(stderr, "%s\n", VERSION);
-}
+void version() { fprintf(stderr, "%s\n", VERSION); }

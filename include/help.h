@@ -4,4 +4,4 @@
 void usage(const char *progname);
 void version(void);
 
-#endif // HELP_H
+#endif  // HELP_H

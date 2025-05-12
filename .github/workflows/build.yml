@@ -19,3 +19,17 @@ jobs:
           ./configure
       - name: Build
         run: make -j4
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          brew install autoconf automake help2man
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure
+        run: |
+          autoreconf --install
+          ./configure
+      - name: Build
+        run: make -j4

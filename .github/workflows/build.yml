@@ -17,8 +17,8 @@ jobs:
         run: |
           autoreconf --install
           ./configure
-      - name: Build
-        run: make -j4
+      - name: Build and test
+        run: make -j4 check
   macos:
     runs-on: macos-latest
     steps:
@@ -31,5 +31,5 @@ jobs:
         run: |
           autoreconf --install
           ./configure
-      - name: Build
-        run: make -j4
+      - name: Build and test
+        run: make -j4 check

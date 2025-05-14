@@ -4,7 +4,7 @@ results=$(mktemp ucat.XXX)
 
 clean_and_exit() {
     rm -f "$socket" "$results"
-    exit $1
+    exit "$1"
 }
 
 success=0

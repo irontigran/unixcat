@@ -5,6 +5,9 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "cli.h"
+#include "main.h"
+
 int Cli_conn(const char *dst, const char *src) {
     struct sockaddr_un to;
     if (strlen(dst) >= sizeof(to.sun_path)) {
@@ -50,23 +53,47 @@ err:
     return ret;
 }
 
-void Cli_send(int fd) {
+void Cli_send(int fd, const int send_fds[SCM_MAX_FD], int numfds) {
     const size_t buflen = 256;
     char *buf[buflen];
     ssize_t recvd;
+
+    // Ancillary data is sent only with the first call to sendmsg.
+    bool first = true;
     while ((recvd = read(STDIN_FILENO, buf, buflen)) > 0) {
         ssize_t written = 0;
+        struct msghdr msg = {0};
+        struct iovec iov = {.iov_base = buf + written,
+                            .iov_len = recvd - written};
+        msg.msg_iov = &iov;
+        msg.msg_iovlen = 1;
+
         while (written < recvd) {
+            char cmsgbuf[CMSG_SPACE(sizeof(int) * numfds)];
+            if (first && numfds > 0) {
+                memset(cmsgbuf, 0, sizeof(cmsgbuf));
+                msg.msg_control = cmsgbuf;
+                msg.msg_controllen = sizeof(cmsgbuf);
+
+                struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
+                cmsg->cmsg_level = SOL_SOCKET;
+                cmsg->cmsg_type = SCM_RIGHTS;
+                cmsg->cmsg_len = CMSG_LEN(sizeof(int) * numfds);
+                memcpy(CMSG_DATA(cmsg), send_fds, sizeof(int) * numfds);
+                first = false;
+            }
+
             ssize_t ret;
-            ret = write(fd, buf + written, recvd - written);
+            ret = sendmsg(fd, &msg, 0);
             if (ret == 0) {
                 fprintf(stderr, "unexpected EOF\n");
             } else if (ret < 0) {
-                perror("write");
+                perror("sendmsg");
             }
             written += ret;
         }
     }
+
     if (recvd < 0) {
         perror("read");
     }

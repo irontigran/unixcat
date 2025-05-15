@@ -11,6 +11,7 @@ CLEANFILES = ucat.1
 ucat.1: $(srcdir)/man/long.h2m ucat
 	-$(HELP2MAN) --no-discard-stderr --no-info --output=$@ --include=$< ./ucat
 
-TESTS = tests/test.sh
+TESTS = tests/basic-send-recv.sh \
+		tests/pass-fds.sh
 dist_check_SCRIPTS = $(TESTS)
 

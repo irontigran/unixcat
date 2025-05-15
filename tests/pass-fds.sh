@@ -1,4 +1,5 @@
 #!/bin/bash
+
 socket=$(mktemp -u sock.XXX)
 results=$(mktemp ucat.XXX)
 
@@ -12,9 +13,9 @@ fail=1
 hard_fail=99
 
 (./ucat -l "$socket" > "$results" &) || clean_and_exit $hard_fail
-expected="hi"
-echo -n "$expected" | ./ucat "$socket" || clean_and_exit $hard_fail
+echo -n "hi" | ./ucat --fd /usr/bin/bash "$socket" || clean_and_exit $hard_fail
 
+expected="hi@ANC: SCM_RIGHTS /usr/bin/bash"
 stat=$success
 if [ "$(< "$results")" != "$expected" ]; then
     echo "expected $expected, got $results"

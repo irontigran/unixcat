@@ -98,6 +98,9 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
         Cli_send(clientfd, fds, numfds);
+        for (int i = 0; i < numfds; i++) {
+            close(fds[numfds]);
+        }
     }
     exit(EXIT_SUCCESS);
 usage_exit:

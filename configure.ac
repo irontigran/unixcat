@@ -15,7 +15,8 @@ AM_MISSING_PROG(HELP2MAN, help2man)
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdint.h
+AC_CHECK_HEADERS([fcntl.h
+                  stdint.h
                   sys/socket.h
                   unistd.h])
 
@@ -26,6 +27,8 @@ AC_TYPE_SSIZE_T
 
 # Checks for library functions.
 AC_CHECK_FUNCS([memset socket])
+AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+AC_FUNC_MALLOC
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

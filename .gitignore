@@ -8,6 +8,9 @@ ucat.1
 *.o
 # backup files
 *~
+# test logs
+*.log
+*.trs
 
 # http://www.gnu.org/software/automake
 

@@ -7,6 +7,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "main.h"
 #include "serv.h"
 
 int Serv_listen(const char *path) {
@@ -60,8 +61,18 @@ void Serv_recv_and_print(int fd) {
     const size_t buflen = 256;
     char *buf[buflen];
     ssize_t recvd;
-    while ((recvd = read(fd, buf, buflen)) > 0) {
+    struct msghdr msg = {0};
+    struct iovec iov = {.iov_base = buf, .iov_len = buflen};
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+    char cmsgbuf[CMSG_SPACE(sizeof(int) * SCM_MAX_FD)];
+    memset(cmsgbuf, 0, sizeof(cmsgbuf));
+    msg.msg_control = cmsgbuf;
+    msg.msg_controllen = sizeof(cmsgbuf);
+
+    while ((recvd = recvmsg(fd, &msg, 0)) > 0) {
         ssize_t written = 0;
+
         while (written < recvd) {
             ssize_t ret;
             ret = write(STDOUT_FILENO, buf + written, recvd - written);
@@ -71,6 +82,27 @@ void Serv_recv_and_print(int fd) {
                 perror("write");
             }
             written += ret;
+        }
+        struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
+        while (cmsg != NULL) {
+            switch (cmsg->cmsg_type) {
+                case SCM_RIGHTS:
+                    int numfds = (cmsg->cmsg_len - CMSG_LEN(0)) / sizeof(int);
+                    int fds[SCM_MAX_FD];
+                    if (numfds > SCM_MAX_FD) {
+                        numfds = SCM_MAX_FD;  // silently truncate if sent too
+                                              // many fds
+                    }
+                    memcpy(&fds, CMSG_DATA(cmsg), sizeof(int) * numfds);
+                    for (int i = 0; i < numfds; i++) {
+                        fprintf(stdout, "@ANC: SCM_RIGHTS %d\n", fds[i]);
+                    }
+                    break;
+                default:
+                    fprintf(stderr, "unrecognized ancillary data\n");
+                    break;
+            }
+            cmsg = CMSG_NXTHDR(&msg, cmsg);
         }
     }
     if (recvd < 0) {

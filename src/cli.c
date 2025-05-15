@@ -62,13 +62,13 @@ void Cli_send(int fd, const int send_fds[SCM_MAX_FD], int numfds) {
     bool first = true;
     while ((recvd = read(STDIN_FILENO, buf, buflen)) > 0) {
         ssize_t written = 0;
-        struct msghdr msg = {0};
-        struct iovec iov = {.iov_base = buf + written,
-                            .iov_len = recvd - written};
-        msg.msg_iov = &iov;
-        msg.msg_iovlen = 1;
 
         while (written < recvd) {
+            struct msghdr msg = {0};
+            struct iovec iov = {.iov_base = buf + written,
+                                .iov_len = recvd - written};
+            msg.msg_iov = &iov;
+            msg.msg_iovlen = 1;
             char cmsgbuf[CMSG_SPACE(sizeof(int) * numfds)];
             if (first && numfds > 0) {
                 memset(cmsgbuf, 0, sizeof(cmsgbuf));

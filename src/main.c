@@ -58,7 +58,6 @@ int main(int argc, char **argv) {
                 break;
             case 'f':
                 if (numfds >= SCM_MAX_FD) {
-                    fprintf(stderr, "too many files\n");
                     break;
                 }
                 if ((fd = open(optarg, 0)) == -1) {

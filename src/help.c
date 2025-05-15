@@ -5,12 +5,14 @@
 
 void usage(const char *progname) {
     fprintf(stderr,
-            "Usage: %s [-l] SOCKET\n"
+            "Usage: %s [OPTIONS] SOCKET\n"
             "Interact with unix domain sockets from the command line.\n\n"
             "Options:\n"
             "  -l, --listen         listen on the specified socket\n"
             "  -s, --source <path>  specify source address to use (doesn't "
             "affect -l)\n"
+            "  -f, --fd <path>      pass a file descriptor corresponding to "
+            "<path> (connect mode only)\n"
             "  --help       display this help and exit\n"
             "  --version    output version information and exit\n\n"
             "Examples:\n"

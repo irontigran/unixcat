@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -85,11 +86,12 @@ void Serv_recv_and_print(int fd) {
             written += ret;
         }
         struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
+        int numfds;
+        int fds[SCM_MAX_FD];
         while (cmsg != NULL) {
             switch (cmsg->cmsg_type) {
                 case SCM_RIGHTS:
-                    int numfds = (cmsg->cmsg_len - CMSG_LEN(0)) / sizeof(int);
-                    int fds[SCM_MAX_FD];
+                    numfds = (cmsg->cmsg_len - CMSG_LEN(0)) / sizeof(int);
                     if (numfds > SCM_MAX_FD) {
                         numfds = SCM_MAX_FD;  // silently truncate if sent too
                                               // many fds

@@ -8,8 +8,8 @@
 
 void PFD_print_fd(int fd) {
     char *procfs;
-    asprintf(&procfs, "/proc/self/fd/%d", fd);
-    if (!procfs) {
+    int ret = asprintf(&procfs, "/proc/self/fd/%d", fd);
+    if (ret < 0) {
         return;
     }
 

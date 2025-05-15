@@ -71,15 +71,14 @@ void Serv_recv_and_print(int fd) {
     msg.msg_controllen = sizeof(cmsgbuf);
 
     while ((recvd = recvmsg(fd, &msg, 0)) > 0) {
-        ssize_t written = 0;
+        size_t written = 0;
 
         while (written < recvd) {
-            ssize_t ret;
-            ret = write(STDOUT_FILENO, buf + written, recvd - written);
+            size_t ret;
+            ret = fwrite(buf + written, 1, recvd - written, stdout);
             if (ret == 0) {
-                fprintf(stderr, "unexpected EOF\n");
-            } else if (ret < 0) {
-                perror("write");
+                perror(NULL);
+                return;
             }
             written += ret;
         }
@@ -106,6 +105,6 @@ void Serv_recv_and_print(int fd) {
         }
     }
     if (recvd < 0) {
-        perror("read");
+        perror("on receive");
     }
 }

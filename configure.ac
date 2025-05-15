@@ -30,5 +30,16 @@ AC_CHECK_FUNCS([memset socket])
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 
+# Custom tests
+AC_MSG_CHECKING([for procfs])
+if test -d /proc && test -r /proc/meminfo; then
+    have_procfs=yes
+    AC_MSG_RESULT([yes])
+else
+    have_procfs=no
+    AC_MSG_RESULT([no])
+fi
+AM_CONDITIONAL([HAVE_PROCFS], [test "x$have_procfs" = "xyes"])
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

@@ -5,14 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
 
 #include "main.h"
+#include "printfd.h"
 #include "serv.h"
-
-static void print_fd(int fd);
 
 int Serv_listen(const char *path) {
     struct sockaddr_un un;
@@ -98,7 +96,7 @@ void Serv_recv_and_print(int fd) {
                     }
                     memcpy(&fds, CMSG_DATA(cmsg), sizeof(int) * numfds);
                     for (int i = 0; i < numfds; i++) {
-                        print_fd(fds[i]);
+                        PFD_print_fd(fds[i]);
                     }
                     break;
                 default:
@@ -111,40 +109,4 @@ void Serv_recv_and_print(int fd) {
     if (recvd < 0) {
         perror("on receive");
     }
-}
-
-static void print_fd(int fd) {
-    char *procfs;
-    asprintf(&procfs, "/proc/self/fd/%d", fd);
-    if (!procfs) {
-        return;
-    }
-
-    struct stat sb;
-    if (lstat(procfs, &sb) < 0) {
-        perror("stat");
-    }
-
-    int bufsize = 256;
-    char *pathbuf = NULL;
-    while (1) {
-        pathbuf = malloc(bufsize);
-        if (!pathbuf) {
-            free(procfs);
-            return;
-        }
-        memset(pathbuf, 0, bufsize);
-        int n = readlink(procfs, pathbuf, bufsize - 1);
-        if (n == bufsize - 1) {
-            // If readlink reports that the path was truncated, reallocate and
-            // try again.
-            bufsize *= 2;
-            free(pathbuf);
-            continue;
-        }
-        break;
-    }
-    printf("@ANC: SCM_RIGHTS %s\n", pathbuf);
-    free(procfs);
-    free(pathbuf);
 }

@@ -30,7 +30,21 @@ AC_CHECK_FUNCS([memset socket])
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 
-# Custom tests
+# Custom checks
+
+# Various ways to try and get a path from a file descriptor.
+# Some/most BSDs have an F_GETPATH for fcntl.
+AC_MSG_CHECKING([for F_GETPATH])
+AC_COMPILE_IFELSE(
+                  [AC_LANG_PROGRAM(
+                   [#include <fcntl.h>],
+                   [int cmd = F_GETPATH;])],
+                  [AC_MSG_RESULT([yes])
+                  have_fgetpath=yes],
+                  [AC_MSG_RESULT([no])
+                  have_fgetpath=no])
+AM_CONDITIONAL([HAVE_FGETPATH], [test "x$have_fgetpath" = "xyes"])
+# Linux has procfs.
 AC_MSG_CHECKING([for procfs])
 if test -d /proc && test -r /proc/meminfo; then
     have_procfs=yes

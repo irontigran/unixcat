@@ -2,7 +2,15 @@
 
 socket=$(mktemp -u sock.XXX)
 results=$(mktemp result.XXX)
-fdfile=$(mktemp /tmp/fd.XXX)
+
+# macs have /tmp as a symlink to /private/tmp, so make sure the file path
+# matches after following the symlink since we're testing for the correct
+# filename.
+if test -d /private/tmp; then
+    fdfile=$(mktemp /private/tmp/fd.XXX)
+else
+    fdfile=$(mktemp /tmp/fd.XXX)
+fi
 
 clean_and_exit() {
     rm -f "$socket" "$results" "$fdfile"

@@ -98,6 +98,7 @@ void Serv_recv_and_print(int fd) {
                     memcpy(&fds, CMSG_DATA(cmsg), sizeof(int) * numfds);
                     for (int i = 0; i < numfds; i++) {
                         PFD_print_fd(fds[i]);
+                        close(fds[i]);
                     }
                     break;
                 default:

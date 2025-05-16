@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 socket=$(mktemp -u sock.XXX)
 results=$(mktemp result.XXX)
@@ -22,9 +22,10 @@ fail=1
 hard_fail=99
 
 (./ucat -l "$socket" > "$results" &) || clean_and_exit $hard_fail
-echo -n "hi" | ./ucat --fd "$fdfile" "$socket" || clean_and_exit $hard_fail
+echo "hi" | ./ucat --fd "$fdfile" "$socket" || clean_and_exit $hard_fail
 
-expected="hi@ANC: SCM_RIGHTS $fdfile"
+expected="hi
+@ANC: SCM_RIGHTS $fdfile"
 stat=$success
 r=$(cat "$results")
 if [ "$r" != "$expected" ]; then

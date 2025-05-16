@@ -54,6 +54,17 @@ else
     AC_MSG_RESULT([no])
 fi
 AM_CONDITIONAL([HAVE_PROCFS], [test "x$have_procfs" = "xyes"])
+# FreeBSD has KINFO for fcntl.
+AC_MSG_CHECKING([for KINFO])
+AC_COMPILE_IFELSE(
+                  [AC_LANG_PROGRAM(
+                   [#include <fcntl.h>],
+                   [int cmd = F_KINFO;])],
+                  [AC_MSG_RESULT([yes])
+                  have_kinfo=yes],
+                  [AC_MSG_RESULT([no])
+                  have_kinfo=no])
+AM_CONDITIONAL([HAVE_KINFO], [test "x$have_kinfo" = "xyes"])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

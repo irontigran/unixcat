@@ -11,7 +11,11 @@ else
 if HAVE_PROCFS
 ucat_SOURCES += src/printfd_linux.c
 else
+if HAVE_KINFO
+ucat_SOURCES += src/printfd_kinfo.c
+else
 ucat_SOURCES += src/printfd_default.c
+endif
 endif
 endif
 

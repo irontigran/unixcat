@@ -18,7 +18,7 @@ jobs:
           autoreconf --install
           ./configure
       - name: Build and test
-        run: make V=1 -j4 check || cat test-suite.log
+        run: make V=1 -j4 check || cat test-suite.log && exit 1
   macos:
     runs-on: macos-latest
     steps:
@@ -32,4 +32,4 @@ jobs:
           autoreconf --install
           ./configure
       - name: Build and test
-        run: make V=1 -j4 check || cat test-suite.log
+        run: make V=1 -j4 check || cat test-suite.log && exit 1

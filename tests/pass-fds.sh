@@ -1,8 +1,8 @@
 #!/bin/bash
 
 socket=$(mktemp -u sock.XXX)
-results=$(mktemp ucat.XXX)
-fdfile=$(mktemp /tmp/file.XXX)
+results=$(mktemp result.XXX)
+fdfile=$(mktemp /tmp/fd.XXX)
 
 clean_and_exit() {
     rm -f "$socket" "$results" "$fdfile"
@@ -18,8 +18,9 @@ echo -n "hi" | ./ucat --fd "$fdfile" "$socket" || clean_and_exit $hard_fail
 
 expected="hi@ANC: SCM_RIGHTS $fdfile"
 stat=$success
-if [ "$(< "$results")" != "$expected" ]; then
-    echo "expected $expected, got $results"
+r=$(cat "$results")
+if [ "$r" != "$expected" ]; then
+    echo "expected $expected, got $r"
     stat=$fail
 fi
 clean_and_exit $stat

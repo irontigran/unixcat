@@ -1,7 +1,7 @@
 #!/bin/bash
 
 socket=$(mktemp -u sock.XXX)
-results=$(mktemp ucat.XXX)
+results=$(mktemp result.XXX)
 
 clean_and_exit() {
     rm -f "$socket" "$results"
@@ -17,7 +17,8 @@ expected="hi"
 echo -n "$expected" | ./ucat "$socket" || clean_and_exit $hard_fail
 
 stat=$success
-if [ "$(< "$results")" != "$expected" ]; then
+r=$(cat "$results")
+if [ "$r" != "$expected" ]; then
     echo "expected $expected, got $results"
     stat=$fail
 fi

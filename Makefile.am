@@ -9,7 +9,7 @@ if HAVE_FGETPATH
 ucat_SOURCES += src/printfd_getpath.c
 else
 if HAVE_PROCFS
-ucat_SOURCES += src/printfd_linux.c
+ucat_SOURCES += src/printfd_procfs.c
 else
 if HAVE_KINFO
 ucat_SOURCES += src/printfd_kinfo.c

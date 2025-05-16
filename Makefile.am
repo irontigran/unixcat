@@ -6,15 +6,15 @@ ucat_SOURCES = src/cli.c src/help.c src/main.c src/serv.c \
 noinst_HEADERS = include/cli.h include/help.h include/printfd.h include/main.h include/serv.h
 
 if HAVE_FGETPATH
-ucat_SOURCES += src/printfd_getpath.c
+ucat_SOURCES += src/printfd/printfd_getpath.c
 else
 if HAVE_PROCFS
-ucat_SOURCES += src/printfd_procfs.c
+ucat_SOURCES += src/printfd/printfd_procfs.c
 else
 if HAVE_KINFO
-ucat_SOURCES += src/printfd_kinfo.c
+ucat_SOURCES += src/printfd/printfd_kinfo.c
 else
-ucat_SOURCES += src/printfd_default.c
+ucat_SOURCES += src/printfd/printfd_default.c
 endif
 endif
 endif

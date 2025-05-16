@@ -1,6 +1,51 @@
-[Source Addresses]
-In connect mode, you can specify what source address to connect from:
+[Connect Mode and Listen Mode]
 
+Like netcat, unixcat operates in either connect mode or listen mode.
+In connect mode, unixcat acts like a client; in listen mode, like a server.
+
+.SS Connect Mode Options
+
+Connect mode is the default mode for unixcat.
+You can specify what source address to connect from:
+
+.PP
+.nf
+.RS
 ucat -s /tmp/src /tmp/dest
+.RE
+.fi
+.PP
 
-As with listening on a pathname socket, the socket will persist after the program exits.
+unixcat will create the source socket in the filesystem, but will not delete it after the program exits.
+
+.SS Listen Mode Options
+
+Use
+.B -l / --listen
+to put unixcat in listening mode.
+
+[Ancillary Messages]
+
+unixcat can send ancillary messages (sometimes known as control information) and will do its best to print ancillary messages to stdout when it receives them.
+Ancillary messages can only be sent with real data; if you specify any of the ancillary message options but don't provide any data to send, unixcat will wait until you provide data to send anything.
+
+.SS Passing File Descriptors
+
+You can pass file descriptors between processes over Unix sockets using ucat.
+The following command will send a file descriptor corresponding to /bin/bash:
+
+.PP
+.nf
+.RS
+echo "this is the bash fd" > ucat -f /bin/bash /tmp/sock
+.RE
+.fi
+.PP
+
+(Note how the example provides some real data to send as well.)
+
+You can specify
+.B -f / --fd
+as many times as you would like to send more than one file descriptor, up to your system's preset limit (on Linux, this is 253).
+
+When it receives a file descriptor, unixcat will attempt to figure out what the file descriptor refers to and print it.

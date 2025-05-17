@@ -37,7 +37,7 @@ The following command will send a file descriptor corresponding to /bin/bash:
 .PP
 .nf
 .RS
-echo "this is the bash fd" > ucat -f /bin/bash /tmp/sock
+echo "this is the bash fd" | ucat -f /bin/bash /tmp/sock
 .RE
 .fi
 .PP
@@ -49,3 +49,74 @@ You can specify
 as many times as you would like to send more than one file descriptor, up to your system's preset limit (on Linux, this is 253).
 
 When it receives a file descriptor, unixcat will attempt to figure out what the file descriptor refers to and print it.
+
+.SS Passing Credentials
+
+On some systems, you can also pass credentials over Unix domain sockets.
+What qualifies as "credentials" varies from system to system, but it usually includes at least your pid, uid, and gid.
+Not all systems have all available credential features.
+This man page describes the full featureset, but your installation of unixcat will only have the options available to you on your system.
+Check the
+.B --help
+output for the available options.
+
+.PP
+.nf
+.RS
+ ucat -lR once /tmp/sock
+.RE
+.fi
+.PP
+
+will print the credentials of its peer with the first message only.
+
+The
+.B -R / --recv-creds
+option always overrides the
+.B -S / --send-creds
+option.
+If the receiver specifies that they want credentials, they will get them on every
+.B recvmsg
+call no matter what the sender is doing.
+This also means that
+.B -R always
+will override
+.B -S once,
+in that credentials will be printed by the receiver with every message.
+
+If you try to send credentials to a unixcat instance that didn't have the
+.B -R
+option specified, behavior varies per platform.
+On Linux, you
+.ul
+must
+specify
+.B -R
+to receive credentials.
+The kernel will discard any sent credentials otherwise.
+On some BSDs, you can send credentials without specifying the receive option, but you will receive a different set of information than if you specified the receive option.
+So, on BSDs,
+
+.PP
+.nf
+.RS
+ucat -l /tmp/sock &
+echo "hi" | ucat -S always /tmp/sock
+.RE
+.fi
+.PP
+
+will print different credential information than
+
+.PP
+.nf
+.RS
+ucat -lR once /tmp/sock &
+echo "hi" | ucat -S always /tmp/sock
+.RE
+.fi
+.PP
+
+Even more confusing, the second example will print the "receive" version of credentials with the first message and then the "send" version of credentials with the rest of the messages.
+
+On Linux the first example will not print any credentials.

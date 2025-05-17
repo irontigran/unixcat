@@ -4,23 +4,28 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include "cli.h"
+#include "creds.h"
 #include "help.h"
 #include "main.h"
+#include "options.h"
 #include "serv.h"
 
 int main(int argc, char **argv) {
     bool listen = false;
     const char *source = NULL;
     int fd;
-    int numfds = 0;
-    int fds[SCM_MAX_FD];
+    AncillaryCfg config;
+    config.numfds = 0;
+    config.send_creds = 0;
+    config.recv_creds = 0;
 
-    int option_index = 0;
-    static struct option long_options[] = {
+    const char *default_shorts = "+ls:f:";
+    const struct option default_longs[] = {
         (struct option){
             .name = "help", .has_arg = no_argument, .flag = NULL, .val = 0},
         (struct option){
@@ -36,8 +41,15 @@ int main(int argc, char **argv) {
                         .flag = NULL,
                         .val = 'f'},
         (struct option){.name = NULL, .has_arg = 0, .flag = NULL, .val = 0}};
+    OptBundle opts;
+    opts.shortopts = NULL;
+    opts.longopts = NULL;
+    opts = Options_append(opts, default_shorts, default_longs);
+    opts = Creds_register_options(opts);
+
+    int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "+ls:f:", long_options,
+    while ((c = getopt_long(argc, argv, opts.shortopts, opts.longopts,
                             &option_index)) != -1) {
         switch (c) {
             case 0:
@@ -57,7 +69,7 @@ int main(int argc, char **argv) {
                 source = optarg;
                 break;
             case 'f':
-                if (numfds >= SCM_MAX_FD) {
+                if (config.numfds >= SCM_MAX_FD) {
                     break;
                 }
                 if ((fd = open(optarg, 0)) == -1) {
@@ -67,8 +79,21 @@ int main(int argc, char **argv) {
                     perror(NULL);
                     break;
                 }
-                fds[numfds] = fd;
-                numfds++;
+                config.send_fds[config.numfds] = fd;
+                config.numfds++;
+                break;
+            case 'R':
+                if (strcmp("once", optarg) == 0) {
+                    config.recv_creds = 1;
+                } else if (strcmp("always", optarg) == 0) {
+                    config.recv_creds = -1;
+                } else {
+                    fprintf(stderr,
+                            "invalid recv creds arg: %s (valid args are 'once' "
+                            "or 'always')\n",
+                            optarg);
+                    exit(EXIT_FAILURE);
+                }
                 break;
             default:
                 goto usage_exit;
@@ -90,20 +115,21 @@ int main(int argc, char **argv) {
             perror("on accept");
             exit(EXIT_FAILURE);
         }
-        Serv_recv_and_print(clientfd);
+        Serv_recv_and_print(clientfd, config);
     } else {
         int clientfd;
         if ((clientfd = Cli_conn(path, source)) < 0) {
             perror("on connect");
             exit(EXIT_FAILURE);
         }
-        Cli_send(clientfd, fds, numfds);
-        for (int i = 0; i < numfds; i++) {
-            close(fds[numfds]);
+        Cli_send(clientfd, config);
+        for (int i = 0; i < config.numfds; i++) {
+            close(config.send_fds[i]);
         }
+        close(clientfd);
     }
     exit(EXIT_SUCCESS);
 usage_exit:
-    fprintf(stderr, "Usage: %s [-l] path\n", argv[0]);
+    fprintf(stderr, "Usage: %s [OPTIONS] path\n", argv[0]);
     exit(EXIT_FAILURE);
 }

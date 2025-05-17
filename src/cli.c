@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -54,12 +55,11 @@ err:
     return ret;
 }
 
-void Cli_send(int fd, const int send_fds[SCM_MAX_FD], int numfds) {
+void Cli_send(int fd, AncillaryCfg config) {
     const size_t buflen = 256;
     char *buf[buflen];
     ssize_t recvd;
 
-    // Ancillary data is sent only with the first call to sendmsg.
     bool first = true;
     while ((recvd = read(STDIN_FILENO, buf, buflen)) > 0) {
         ssize_t written = 0;
@@ -70,26 +70,52 @@ void Cli_send(int fd, const int send_fds[SCM_MAX_FD], int numfds) {
                                 .iov_len = recvd - written};
             msg.msg_iov = &iov;
             msg.msg_iovlen = 1;
-            char cmsgbuf[CMSG_SPACE(sizeof(int) * numfds)];
-            if (first && numfds > 0) {
+
+            int numcreds = config.send_creds;
+            /*
+            int cmsgspace = CMSG_SPACE(sizeof(int) * config.numfds +
+                                       sizeof(struct ucred) * numcreds);
+                                       */
+            int cmsgspace = CMSG_SPACE(sizeof(int) * config.numfds);
+            char cmsgbuf[cmsgspace];
+            // Set up ancillary messages if there are any and only when we send
+            // the first message.
+            if (first && (config.numfds > 0 || numcreds != 0)) {
+                first = false;
                 memset(cmsgbuf, 0, sizeof(cmsgbuf));
                 msg.msg_control = cmsgbuf;
                 msg.msg_controllen = sizeof(cmsgbuf);
 
                 struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
-                cmsg->cmsg_level = SOL_SOCKET;
-                cmsg->cmsg_type = SCM_RIGHTS;
-                cmsg->cmsg_len = CMSG_LEN(sizeof(int) * numfds);
-                memcpy(CMSG_DATA(cmsg), send_fds, sizeof(int) * numfds);
-                first = false;
+                if (config.numfds > 0) {
+                    cmsg->cmsg_level = SOL_SOCKET;
+                    cmsg->cmsg_type = SCM_RIGHTS;
+                    cmsg->cmsg_len = CMSG_LEN(sizeof(int) * config.numfds);
+                    memcpy(CMSG_DATA(cmsg), config.send_fds,
+                           sizeof(int) * config.numfds);
+                    // cmsg = CMSG_NXTHDR(&msg, cmsg);
+                }
+                /*
+                if (numcreds != 0) {
+                    cmsg->cmsg_level = SOL_SOCKET;
+                    cmsg->cmsg_type = SCM_CREDENTIALS;
+                    cmsg->cmsg_len = CMSG_LEN(sizeof(struct ucred));
+                    struct ucred *credp = (struct ucred *)CMSG_DATA(cmsg);
+                    credp->uid = geteuid();
+                    credp->gid = getegid();
+                    credp->pid = getpid();
+                }
+                */
             }
 
             ssize_t ret;
             ret = sendmsg(fd, &msg, 0);
             if (ret == 0) {
                 fprintf(stderr, "unexpected EOF\n");
+                return;
             } else if (ret < 0) {
                 perror("sendmsg");
+                return;
             }
             written += ret;
         }

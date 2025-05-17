@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "config.h"
+#include "creds.h"
 #include "help.h"
 
 void usage(const char *progname) {
@@ -13,12 +14,13 @@ void usage(const char *progname) {
             "affect -l)\n"
             "  -f, --fd <path>      pass a file descriptor corresponding to "
             "<path> (connect mode only)\n"
+            "%s"
             "  --help       display this help and exit\n"
             "  --version    output version information and exit\n\n"
             "Examples:\n"
             "  ucat /tmp/sock       -> connect to /tmp/sock\n"
             "  ucat -l /tmp/sock    -> listen on /tmp/sock\n",
-            progname);
+            progname, Creds_help_message);
 }
 
 void version() { fprintf(stderr, "%s\n", VERSION); }

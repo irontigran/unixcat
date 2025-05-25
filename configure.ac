@@ -85,7 +85,7 @@ AC_COMPILE_IFELSE([
     AC_COMPILE_IFELSE([
         AC_LANG_PROGRAM([
             #include <sys/socket.h>
-        ], [int opt = SCM_CREDS;])
+        ], [int opt = SCM_CREDS; struct sockcred cred;])
         ], [
         AC_MSG_RESULT([BSD-style credentials])
         scm_creds=yes
@@ -93,7 +93,7 @@ AC_COMPILE_IFELSE([
         AC_COMPILE_IFELSE([
             AC_LANG_PROGRAM([
                 #include <sys/socket.h>
-            ], [struct sockcred creds;])
+            ], [struct cmsgcred creds;])
             ], [
             AC_MSG_RESULT([send and receive])
             send_creds=yes

@@ -32,4 +32,4 @@ jobs:
           autoreconf --install
           ./configure
       - name: Build and test
-        run: make V=1 -j4 check || (cat test-suite.log; false)
+        run: make V=1 -j3 check || (cat test-suite.log; false)

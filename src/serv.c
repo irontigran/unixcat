@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,10 +63,9 @@ int Serv_accept(int fd) {
     return newfd;
 }
 
-void Serv_recv_and_print(int fd, AncillaryCfg config) {
-    const size_t buflen = 256;
-    char *buf[buflen];
-    ssize_t recvd;
+int Net_recv_and_print(int fd, AncillaryCfg config) {
+    const size_t buflen = 1024;
+    uint8_t buf[buflen];
     struct msghdr msg = {0};
     struct iovec iov = {.iov_base = buf, .iov_len = buflen};
     msg.msg_iov = &iov;
@@ -82,17 +82,18 @@ void Serv_recv_and_print(int fd, AncillaryCfg config) {
     if (config.recv_creds > 0) {
         if (Creds_turn_on_once(fd) < 0) {
             perror("enabling creds once");
-            return;
+            return -1;
         }
     }
     if (config.recv_creds < 0) {
         if (Creds_turn_on_persistent(fd) < 0) {
             perror("enabling creds always");
-            return;
+            return -1;
         }
     }
 
-    while ((recvd = recvmsg(fd, &msg, 0)) > 0) {
+    ssize_t recvd;
+    while ((recvd = recvmsg(fd, &msg, MSG_DONTWAIT)) > 0) {
         // In addition, on some systems we're mimicking sending credentials
         // just once using a persistent mechanism. Or vice versa: we're
         // mimicking sending credentials persistently using a just once
@@ -100,17 +101,15 @@ void Serv_recv_and_print(int fd, AncillaryCfg config) {
         // it on after sending it once.
         if (Creds_confirm_recv_settings(fd) < 0) {
             perror("reenabling creds");
-            return;
+            return -1;
         }
-
         size_t written = 0;
-
         while (written < recvd) {
             size_t ret;
             ret = fwrite(buf + written, 1, recvd - written, stdout);
             if (ret == 0) {
                 perror(NULL);
-                return;
+                return -1;
             }
             written += ret;
         }
@@ -137,7 +136,12 @@ void Serv_recv_and_print(int fd, AncillaryCfg config) {
             cmsg = CMSG_NXTHDR(&msg, cmsg);
         }
     }
+    if (recvd < 0 &&
+        (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
+        return 0;
+    }
     if (recvd < 0) {
         perror("on receive");
     }
+    return recvd;
 }

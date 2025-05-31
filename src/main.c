@@ -10,12 +10,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "cli.h"
 #include "creds.h"
 #include "help.h"
 #include "main.h"
+#include "net.h"
 #include "options.h"
-#include "serv.h"
 
 static void readwrite(int net_fd, AncillaryCfg cfg);
 static ssize_t Std_read(int fd, uint8_t *buf, size_t buflen);
@@ -111,32 +110,23 @@ int main(int argc, char **argv) {
     const char *path = argv[optind];
     if (listen) {
         int listenfd;
-        if ((listenfd = Serv_listen(path)) < 0) {
+        if ((listenfd = Net_listen(path)) < 0) {
             perror("on bind");
             exit(EXIT_FAILURE);
         }
         int clientfd;
-        if ((clientfd = Serv_accept(listenfd)) < 0) {
+        if ((clientfd = Net_accept(listenfd)) < 0) {
             perror("on accept");
             exit(EXIT_FAILURE);
         }
         readwrite(clientfd, config);
-        /*
-        Serv_recv_and_print(clientfd, config);
-        */
     } else {
         int clientfd;
-        if ((clientfd = Cli_conn(path, source)) < 0) {
+        if ((clientfd = Net_conn(path, source)) < 0) {
             perror("on connect");
             exit(EXIT_FAILURE);
         }
         readwrite(clientfd, config);
-        /*
-        Cli_send(clientfd, config);
-        for (int i = 0; i < config.numfds; i++) {
-            close(config.send_fds[i]);
-        }
-        */
         close(clientfd);
     }
     exit(EXIT_SUCCESS);

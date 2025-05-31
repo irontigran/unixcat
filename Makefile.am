@@ -1,16 +1,15 @@
 AM_CPPFLAGS = -I$(srcdir)/include
 
 bin_PROGRAMS = ucat
-ucat_SOURCES = src/cli.c src/fdstate.c src/help.c src/main.c src/options.c src/serv.c \
+ucat_SOURCES = src/fdstate.c src/help.c src/main.c src/net.c src/options.c \
 			   man/long.h2m
-noinst_HEADERS = include/cli.h \
-				 include/creds.h \
+noinst_HEADERS = include/creds.h \
 				 include/fdstate.h \
 				 include/help.h \
 				 include/printfd.h \
 				 include/main.h \
-				 include/options.h \
-				 include/serv.h
+				 include/net.h \
+				 include/options.h
 
 dist_man1_MANS = ucat.1
 CLEANFILES = ucat.1

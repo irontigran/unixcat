@@ -10,6 +10,7 @@ AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
 AM_MISSING_PROG(HELP2MAN, help2man)
 
 # Checks for libraries.
@@ -23,13 +24,14 @@ AC_CHECK_HEADERS([fcntl.h
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
+AC_TYPE_UINT8_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_PID_T
 AC_TYPE_UID_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset socket strchr])
+AC_CHECK_FUNCS([memmove memset socket strchr])
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC

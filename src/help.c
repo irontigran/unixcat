@@ -13,7 +13,7 @@ void usage(const char *progname) {
             "  -s, --source <path>  specify source address to use (doesn't "
             "affect -l)\n"
             "  -f, --fd <path>      pass a file descriptor corresponding to "
-            "<path> (connect mode only)\n"
+            "<path>\n"
             "%s"
             "  --help       display this help and exit\n"
             "  --version    output version information and exit\n\n"

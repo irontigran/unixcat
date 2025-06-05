@@ -18,9 +18,12 @@ expected="hi
 @ANC: SCM_CREDS"
 r=$(cat "$results")
 
-case "$expected" in "$r"*)
-    echo "expected $expected, got $r"
-    clean_and_exit $fail
+case "$r" in
+    "$expected"*) ;;
+    *)
+        echo "expected to start with $expected, actual was $r"
+        clean_and_exit $fail
+        ;;
 esac
 
 clean_and_exit $success

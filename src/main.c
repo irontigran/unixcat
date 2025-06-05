@@ -108,28 +108,57 @@ int main(int argc, char **argv) {
         goto usage_exit;
     }
     const char *path = argv[optind];
+    int clientfd;
     if (listen) {
         int listenfd;
         if ((listenfd = Net_listen(path)) < 0) {
             perror("on bind");
             exit(EXIT_FAILURE);
         }
-
-        int clientfd;
+        if (config.recv_creds > 0) {
+            if (Creds_turn_on_once(listenfd) < 0) {
+                perror("enabling creds once");
+                exit(EXIT_FAILURE);
+            }
+        }
+        if (config.recv_creds < 0) {
+            if (Creds_turn_on_persistent(listenfd) < 0) {
+                perror("enabling creds always");
+                exit(EXIT_FAILURE);
+            }
+        }
         if ((clientfd = Net_accept(listenfd)) < 0) {
             perror("on accept");
             exit(EXIT_FAILURE);
         }
-        readwrite(clientfd, config);
     } else {
-        int clientfd;
         if ((clientfd = Net_conn(path, source)) < 0) {
             perror("on connect");
             exit(EXIT_FAILURE);
         }
-        readwrite(clientfd, config);
-        close(clientfd);
     }
+
+    // Enabling receiving passed credentials portably is tricky. Some systems
+    // default to one time only, some default to receiving credentials with
+    // every message. To make everything work, we have to have separate
+    // functions for enabling passed credentials just once or persistently.
+    // Some systems also want the option to be enabled on the listening socket
+    // in order to work.  To cover all of our bases, we enable any relevant
+    // options on both the listening socket and the accepted socket.
+    if (config.recv_creds > 0) {
+        if (Creds_turn_on_once(clientfd) < 0) {
+            perror("enabling creds once");
+            exit(EXIT_FAILURE);
+        }
+    }
+    if (config.recv_creds < 0) {
+        if (Creds_turn_on_persistent(clientfd) < 0) {
+            perror("enabling creds always");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    readwrite(clientfd, config);
     exit(EXIT_SUCCESS);
 usage_exit:
     fprintf(stderr, "Usage: %s [OPTIONS] path\n", argv[0]);
@@ -271,7 +300,8 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
             cfg.numfds = 0;
         }
 
-        // If stdin is gone and buffer is empty, shutdown the network connection.
+        // If stdin is gone and buffer is empty, shutdown the network
+        // connection.
         if (pfds[stdi].fd == -1 && stdinpos == 0) {
             if (pfds[neto].fd != -1) {
                 shutdown(pfds[neto].fd, SHUT_WR);

@@ -145,30 +145,16 @@ int Net_recv_and_print(int fd, AncillaryCfg config) {
     msg.msg_control = cmsgbuf;
     msg.msg_controllen = sizeof(cmsgbuf);
 
-    // Enabling receiving passed credentials portably is tricky. Some systems
-    // default to one time only, some default to receiving credentials with
-    // every message. To make everything work, we have to have separate
-    // functions for enabling passed credentials just once or persistently.
-    if (config.recv_creds > 0) {
-        if (Creds_turn_on_once(fd) < 0) {
-            perror("enabling creds once");
-            return -1;
-        }
-    }
-    if (config.recv_creds < 0) {
-        if (Creds_turn_on_persistent(fd) < 0) {
-            perror("enabling creds always");
-            return -1;
-        }
-    }
-
     ssize_t recvd;
     while ((recvd = recvmsg(fd, &msg, MSG_DONTWAIT)) > 0) {
-        // In addition, on some systems we're mimicking sending credentials
-        // just once using a persistent mechanism. Or vice versa: we're
-        // mimicking sending credentials persistently using a just once
-        // mechanism. So we need to turn it off after sending it once; or turn
-        // it on after sending it once.
+        // On some systems we're mimicking sending credentials just once using
+        // a persistent mechanism. Or vice versa: we're mimicking sending
+        // credentials persistently using a just once mechanism. So even though
+        // we set the credential options on the socket before starting any
+        // networking operations, we need to confirm the options after every
+        // recvmsg call.  We might need to turn an option off after one revmsg
+        // call; or turn it on again after every recvmsg call. On some systems
+        // this is just a no-op.
         if (Creds_confirm_recv_settings(fd) < 0) {
             perror("reenabling creds");
             return -1;

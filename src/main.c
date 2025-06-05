@@ -114,6 +114,7 @@ int main(int argc, char **argv) {
             perror("on bind");
             exit(EXIT_FAILURE);
         }
+
         int clientfd;
         if ((clientfd = Net_accept(listenfd)) < 0) {
             perror("on accept");
@@ -159,7 +160,7 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
         if (pfds[neto].fd == -1) {
             return;
         }
-        // If stdin is gone and the stdin buffer is empty, then we're done.
+        // If all the inputs are gone and input buf is empty, we're done.
         if (pfds[stdi].fd == -1 && stdinpos == 0) {
             return;
         }
@@ -190,10 +191,16 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
         // Meanwhile, a POLLHUP on socket write means we just shutdown the
         // connection.
         if (pfds[neto].revents & POLLHUP) {
+            /* TODO: implement this with an option like -N?
             if (pfds[neto].fd != -1) {
                 shutdown(pfds[neto].fd, SHUT_WR);
             }
+            */
             pfds[neto].fd = -1;
+        }
+        // If the socket out is gone, no need to keep watching stdin.
+        if (pfds[neto].fd == -1) {
+            pfds[stdi].fd = -1;
         }
 
         ssize_t ret;
@@ -201,8 +208,10 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
         if (pfds[stdi].revents & POLLIN && stdinpos < buflen) {
             ret =
                 Std_read(pfds[stdi].fd, stdinbuf + stdinpos, buflen - stdinpos);
-            if (ret == -1) {
+            if (ret == 0 || ret == -1) {
                 pfds[stdi].fd = -1;
+            } else if (ret == -2) {
+                pfds[stdi].events = POLLIN;
             } else {
                 stdinpos += ret;
             }
@@ -220,15 +229,25 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
         // Read from the socket. Any reads from the socket are immediately
         // printed to stdout on the spot, so no need to pass buffers around.
         if (pfds[neti].revents & POLLIN) {
-            if (Net_recv_and_print(pfds[neti].fd, cfg) < 0) {
+            ret = Net_recv_and_print(pfds[neti].fd, cfg);
+            if (ret == 0 || ret == -1) {
                 pfds[neti].fd = -1;
+            } else if (ret == -2) {
+                pfds[neti].events = POLLIN;
+            }
+            // If we wanted to receive creds only once, switch it off after the
+            // first time. TODO: Net_send calls recvmsg several times, so it
+            // does the same check slightly differently. Unify all receive
+            // creds checks here?
+            if (cfg.recv_creds > 0) {
+                cfg.recv_creds = 0;
             }
         }
 
         // Write to the socket if possible and we have data in the buffer.
         if (pfds[neto].revents & POLLOUT && stdinpos > 0) {
             ret = Net_send(pfds[neto].fd, stdinbuf, stdinpos, cfg);
-            if (ret == -1) {
+            if (ret == 0 || ret == -1) {
                 pfds[neto].fd = -1;
             } else {
                 ssize_t adjust = stdinpos - ret;
@@ -251,14 +270,27 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
             // We only pass file descriptors with the first message.
             cfg.numfds = 0;
         }
+
+        // If stdin is gone and buffer is empty, shutdown the network connection.
+        if (pfds[stdi].fd == -1 && stdinpos == 0) {
+            if (pfds[neto].fd != -1) {
+                shutdown(pfds[neto].fd, SHUT_WR);
+            }
+            pfds[neto].fd = -1;
+        }
+
+        // If the socket read is gone, so is socket write.
+        if (pfds[neti].fd == -1) {
+            pfds[neto].fd = -1;
+        }
     }
 }
 
 static ssize_t Std_read(int fd, uint8_t *buf, size_t buflen) {
     ssize_t n = read(fd, buf, buflen);
     // Blocking and interruptions aren't errors, try again later.
-    if (n <= 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
-        return 0;
+    if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
+        return -2;
     }
     if (n < 0) {
         perror("on read");

@@ -208,7 +208,7 @@ int Net_recv_and_print(int fd, AncillaryCfg config) {
     }
     if (recvd < 0 &&
         (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
-        return 0;
+        return -2;
     }
     if (recvd < 0) {
         perror("on receive");

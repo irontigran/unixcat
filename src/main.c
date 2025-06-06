@@ -116,19 +116,25 @@ int main(int argc, char **argv) {
                 }
                 break;
             case 'p':
-                config.pid = atoi(optarg);
+                if (!atopid(optarg, &config.pid)) {
+                    exit(EXIT_FAILURE);
+                }
                 if (config.send_creds == 0) {
                     config.send_creds = 1;
                 }
                 break;
             case 'u':
-                config.uid = atoi(optarg);
+                if (!atouid(optarg, &config.uid)) {
+                    exit(EXIT_FAILURE);
+                }
                 if (config.send_creds == 0) {
                     config.send_creds = 1;
                 }
                 break;
             case 'g':
-                config.gid = atoi(optarg);
+                if (!atogid(optarg, &config.gid)) {
+                    exit(EXIT_FAILURE);
+                }
                 if (config.send_creds == 0) {
                     config.send_creds = 1;
                 }

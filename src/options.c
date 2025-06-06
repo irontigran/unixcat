@@ -1,7 +1,12 @@
 #include <assert.h>
+#include <errno.h>
 #include <getopt.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "options.h"
 
@@ -58,4 +63,73 @@ OptBundle Options_append(OptBundle existing, const char *newshorts,
         (struct option){.name = NULL, .has_arg = 0, .flag = NULL, .val = 0};
 
     return existing;
+}
+
+bool atopid(const char *str, pid_t *result) {
+    assert(str != NULL);
+    assert(result != NULL);
+    char *endptr;
+    long val;
+
+    errno = 0;
+    val = strtol(str, &endptr, 10);
+
+    if (errno != 0) {
+        perror(NULL);
+        return false;
+    }
+
+    if (endptr == str || *endptr != '\0') {
+        fprintf(stderr, "invalid pid: %s\n", str);
+        return false;
+    }
+
+    *result = (pid_t)val;
+    return true;
+}
+
+bool atouid(const char *str, uid_t *result) {
+    assert(str != NULL);
+    assert(result != NULL);
+    char *endptr;
+    unsigned long val;
+
+    errno = 0;
+    val = strtoul(str, &endptr, 10);
+
+    if (errno != 0) {
+        perror(NULL);
+        return false;
+    }
+
+    if (endptr == str || *endptr != '\0') {
+        fprintf(stderr, "invalid uid: %s\n", str);
+        return false;
+    }
+
+    *result = (uid_t)val;
+    return true;
+}
+
+bool atogid(const char *str, gid_t *result) {
+    assert(str != NULL);
+    assert(result != NULL);
+    char *endptr;
+    unsigned long val;
+
+    errno = 0;
+    val = strtoul(str, &endptr, 10);
+
+    if (errno != 0) {
+        perror(NULL);
+        return false;
+    }
+
+    if (endptr == str || *endptr != '\0') {
+        fprintf(stderr, "invalid gid: %s\n", str);
+        return false;
+    }
+
+    *result = (gid_t)val;
+    return true;
 }

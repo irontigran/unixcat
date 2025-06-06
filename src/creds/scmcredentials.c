@@ -3,15 +3,22 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 
 #include "creds.h"
 #include "fdstate.h"
+#include "main.h"
 #include "options.h"
 
 char *Creds_help_message =
     "  -R, --recv-creds [once|always]   receive peer credentials with every "
-    "message or just the first one\n";
+    "message or just the first one\n"
+    "  -S, --send-creds [once|always]   send peer credentials with every "
+    "message or just the first one\n"
+    "  --pid/uid/gid <pid/uid/gid>      customize the sent credentials. "
+    "Implies -S once if no -S option specified. Requires elevated "
+    "privileges.\n";
 
 OptBundle Creds_register_options(OptBundle existing) {
     const struct option longopts[] = {
@@ -19,8 +26,24 @@ OptBundle Creds_register_options(OptBundle existing) {
                         .has_arg = required_argument,
                         .flag = NULL,
                         .val = 'R'},
+        (struct option){.name = "send-creds",
+                        .has_arg = required_argument,
+                        .flag = NULL,
+                        .val = 'S'},
+        (struct option){.name = "pid",
+                        .has_arg = required_argument,
+                        .flag = NULL,
+                        .val = 'p'},
+        (struct option){.name = "uid",
+                        .has_arg = required_argument,
+                        .flag = NULL,
+                        .val = 'u'},
+        (struct option){.name = "gid",
+                        .has_arg = required_argument,
+                        .flag = NULL,
+                        .val = 'g'},
         (struct option){.name = NULL, .has_arg = 0, .flag = NULL, .val = 0}};
-    return Options_append(existing, "R:", longopts);
+    return Options_append(existing, "R:S:", longopts);
 }
 
 int Creds_turn_on_once(int fd) {
@@ -48,4 +71,14 @@ void Creds_print_credential(struct cmsghdr *cmsg) {
     const struct ucred *credp = (struct ucred *)CMSG_DATA(cmsg);
     printf("@ANC: SCM_CREDENTIALS pid=%d,uid=%d,gid=%d\n", credp->pid,
            credp->uid, credp->gid);
+}
+
+size_t Creds_sizeof_send_struct(void) { return sizeof(struct ucred); }
+
+void Creds_fill_cmsg(struct cmsghdr *cmsg, AncillaryCfg cfg) {
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_CREDENTIALS;
+    cmsg->cmsg_len = CMSG_LEN(sizeof(struct ucred));
+    struct ucred ucred = {.pid = cfg.pid, .uid = cfg.uid, .gid = cfg.gid};
+    memcpy(CMSG_DATA(cmsg), &ucred, sizeof(ucred));
 }

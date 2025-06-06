@@ -48,11 +48,10 @@ ssize_t Net_send(int fd, void *buf, size_t buflen, AncillaryCfg config);
 /* Receive data and ancillary messages over a unix socket descriptor. (Does not
  * block.) It immediately prints any data it receives to stdout.
  *
- * fd is the file descriptor and the config parameter describes how to receive
- * ancillary data (see the struct definition for more).
+ * fd is the file descriptor
  *
  * Returns 0 on success and a negative number on error.
  */
-int Net_recv_and_print(int fd, AncillaryCfg config);
+int Net_recv_and_print(int fd);
 
 #endif  // CLI_H

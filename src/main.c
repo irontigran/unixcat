@@ -27,6 +27,9 @@ int main(int argc, char **argv) {
     config.numfds = 0;
     config.send_creds = 0;
     config.recv_creds = 0;
+    config.pid = getpid();
+    config.uid = getuid();
+    config.gid = getgid();
 
     const char *default_shorts = "+ls:f:";
     const struct option default_longs[] = {
@@ -97,6 +100,37 @@ int main(int argc, char **argv) {
                             "or 'always')\n",
                             optarg);
                     exit(EXIT_FAILURE);
+                }
+                break;
+            case 'S':
+                if (strcmp("once", optarg) == 0) {
+                    config.send_creds = 1;
+                } else if (strcmp("always", optarg) == 0) {
+                    config.send_creds = -1;
+                } else {
+                    fprintf(stderr,
+                            "invalid send creds arg: %s (valid args are 'once' "
+                            "or 'always')\n",
+                            optarg);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'p':
+                config.pid = atoi(optarg);
+                if (config.send_creds == 0) {
+                    config.send_creds = 1;
+                }
+                break;
+            case 'u':
+                config.uid = atoi(optarg);
+                if (config.send_creds == 0) {
+                    config.send_creds = 1;
+                }
+                break;
+            case 'g':
+                config.gid = atoi(optarg);
+                if (config.send_creds == 0) {
+                    config.send_creds = 1;
                 }
                 break;
             default:
@@ -258,18 +292,11 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
         // Read from the socket. Any reads from the socket are immediately
         // printed to stdout on the spot, so no need to pass buffers around.
         if (pfds[neti].revents & POLLIN) {
-            ret = Net_recv_and_print(pfds[neti].fd, cfg);
+            ret = Net_recv_and_print(pfds[neti].fd);
             if (ret == 0 || ret == -1) {
                 pfds[neti].fd = -1;
             } else if (ret == -2) {
                 pfds[neti].events = POLLIN;
-            }
-            // If we wanted to receive creds only once, switch it off after the
-            // first time. TODO: Net_send calls recvmsg several times, so it
-            // does the same check slightly differently. Unify all receive
-            // creds checks here?
-            if (cfg.recv_creds > 0) {
-                cfg.recv_creds = 0;
             }
         }
 
@@ -298,6 +325,12 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
             }
             // We only pass file descriptors with the first message.
             cfg.numfds = 0;
+            // Feels weird to set this here, but this is the last place that
+            // persistent configuration is available. The Net functions just
+            // have a copy.
+            if (cfg.send_creds > 0) {
+                cfg.send_creds = 0;
+            }
         }
 
         // If stdin is gone and buffer is empty, shutdown the network

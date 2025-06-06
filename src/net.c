@@ -112,18 +112,33 @@ ssize_t Net_send(int fd, void *buf, size_t buflen, AncillaryCfg config) {
     struct iovec iov = {.iov_base = buf, .iov_len = buflen};
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
-    int cmsgspace = CMSG_SPACE(sizeof(int) * config.numfds);
-    char cmsgbuf[cmsgspace];
+
+    int cmsgspace = 0;
     if (config.numfds > 0) {
-        memset(cmsgbuf, 0, sizeof(cmsgbuf));
+        cmsgspace += CMSG_SPACE(sizeof(int) * config.numfds);
+    }
+    if (config.send_creds != 0) {
+        cmsgspace += CMSG_SPACE(Creds_sizeof_send_struct());
+    }
+    char cmsgbuf[cmsgspace];
+    memset(cmsgbuf, 0, sizeof(cmsgbuf));
+
+    if (config.numfds > 0 || config.send_creds != 0) {
         msg.msg_control = cmsgbuf;
         msg.msg_controllen = sizeof(cmsgbuf);
 
         struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
-        cmsg->cmsg_level = SOL_SOCKET;
-        cmsg->cmsg_type = SCM_RIGHTS;
-        cmsg->cmsg_len = CMSG_LEN(sizeof(int) * config.numfds);
-        memcpy(CMSG_DATA(cmsg), config.send_fds, sizeof(int) * config.numfds);
+        if (config.numfds > 0) {
+            cmsg->cmsg_level = SOL_SOCKET;
+            cmsg->cmsg_type = SCM_RIGHTS;
+            cmsg->cmsg_len = CMSG_LEN(sizeof(int) * config.numfds);
+            memcpy(CMSG_DATA(cmsg), config.send_fds,
+                   sizeof(int) * config.numfds);
+            cmsg = CMSG_NXTHDR(&msg, cmsg);
+        }
+        if (config.send_creds != 0) {
+            Creds_fill_cmsg(cmsg, config);
+        }
     }
 
     ssize_t ret = sendmsg(fd, &msg, 0);
@@ -133,7 +148,7 @@ ssize_t Net_send(int fd, void *buf, size_t buflen, AncillaryCfg config) {
     return ret;
 }
 
-int Net_recv_and_print(int fd, AncillaryCfg config) {
+int Net_recv_and_print(int fd) {
     const size_t buflen = 1024;
     uint8_t buf[buflen];
     struct msghdr msg = {0};

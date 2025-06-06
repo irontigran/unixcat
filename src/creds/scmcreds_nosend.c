@@ -21,3 +21,10 @@ OptBundle Creds_register_options(OptBundle existing) {
         (struct option){.name = NULL, .has_arg = 0, .flag = NULL, .val = 0}};
     return Options_append(existing, "R:", longopts);
 }
+
+size_t Creds_sizeof_send_struct(void) { return 0; }
+
+void Creds_fill_cmsg(struct cmsghdr *cmsg, AncillaryCfg cfg) {
+    (void)cfg;
+    (void)cmsg;
+}

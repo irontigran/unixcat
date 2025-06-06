@@ -60,6 +60,14 @@ Check the
 .B --help
 output for the available options.
 
+Systems that have the
+.B -R / --recv-creds
+.ul
+<once|always>
+option available can specify it to receive the sender's credentials (independent of any options specified by the sender).
+Its argument is how many times the receiver should get credentials.
+For example:
+
 .PP
 .nf
 .RS
@@ -69,6 +77,15 @@ output for the available options.
 .PP
 
 will print the credentials of its peer with the first message only.
+
+Systems that have the
+.B -S / --send-creds
+.ul
+<once|always>
+option can specify it to send credentials.
+Just like
+.B -R,
+the argument is how many times the sender should send credentials.
 
 The
 .B -R / --recv-creds
@@ -101,6 +118,7 @@ So, on BSDs,
 .nf
 .RS
 ucat -l /tmp/sock &
+
 echo "hi" | ucat -S always /tmp/sock
 .RE
 .fi
@@ -112,6 +130,7 @@ will print different credential information than
 .nf
 .RS
 ucat -lR once /tmp/sock &
+
 echo "hi" | ucat -S always /tmp/sock
 .RE
 .fi
@@ -119,4 +138,45 @@ echo "hi" | ucat -S always /tmp/sock
 
 Even more confusing, the second example will print the "receive" version of credentials with the first message and then the "send" version of credentials with the rest of the messages.
 
-On Linux the first example will not print any credentials.
+On Linux the first example will not print any credentials; the second example will only print credentials once.
+
+Finally, Linux allows you to change the credentials you send, if you have elevated privileges.
+The
+.B --pid, --uid,
+and
+.B --gid
+options allow you to specify values for each credential field.
+Specifying any of these options implies
+.B -S once
+if a
+.B -S
+option is not otherwise provided.
+For example:
+
+.PP
+.nf
+.RS
+sudo ucat --uid 0 /tmp/sock
+.RE
+.fi
+.PP
+
+pretends to be root.
+
+Note that the same interactions between
+.B -S
+and
+.B -R
+still hold true:
+
+.PP
+.nf
+.RS
+ucat -lR always /tmp/sock &
+
+sudo ucat --uid 0 /tmp/sock
+.RE
+.fi
+.PP
+
+only pretends to be root for the first message, then all future messages have the real credentials.

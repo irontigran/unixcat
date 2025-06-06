@@ -19,7 +19,10 @@ void usage(const char *progname) {
             "  --version    output version information and exit\n\n"
             "Examples:\n"
             "  ucat /tmp/sock       -> connect to /tmp/sock\n"
-            "  ucat -l /tmp/sock    -> listen on /tmp/sock\n",
+            "  ucat -l /tmp/sock    -> listen on /tmp/sock\n"
+            "  ucat -lR always /tmp/sock    -> receive credentials on every message\n"
+            "  ucat -S once /tmp/sock       -> send credentials on only the first message\n"
+            "  ucat --pid 1 /tmp/sock       -> pretend to be pid 1 when sending creds\n",
             progname, Creds_help_message);
 }
 

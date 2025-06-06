@@ -16,9 +16,9 @@ char *Creds_help_message =
     "message or just the first one\n"
     "  -S, --send-creds [once|always]   send peer credentials with every "
     "message or just the first one\n"
-    "  --pid/uid/gid <pid/uid/gid>      customize the sent credentials. "
-    "Implies -S once if no -S option specified. Requires elevated "
-    "privileges.\n";
+    "  --pid    <pid>   specify a pid to send\n"
+    "  --uid    <uid>   specify a uid to send\n"
+    "  --gid    <gid>   specify a gid to send\n";
 
 OptBundle Creds_register_options(OptBundle existing) {
     const struct option longopts[] = {

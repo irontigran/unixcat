@@ -36,7 +36,12 @@ endif
 
 if SCM_CREDENTIALS
 ucat_SOURCES += src/creds/scmcredentials.c
-TESTS += tests/pass-scmcredentials.sh
+TESTS += tests/pass-scmcredentials.sh \
+		tests/creds-send-none-recv-once.sh \
+		tests/creds-send-none-recv-always.sh \
+		tests/creds-linux-send-once-recv-none.sh \
+		tests/creds-send-once-recv-once.sh \
+		tests/creds-send-always-recv-always.sh
 else
 if SCM_CREDS
 if LOCAL_CREDS_PERSISTENT
@@ -48,8 +53,15 @@ TESTS += tests/pass-scmcreds-nonpersistent.sh
 endif
 if SEND_CREDS
 ucat_SOURCES += src/creds/scmcreds_send.c
+TESTS += tests/creds-send-none-recv-once.sh \
+		tests/creds-send-none-recv-always.sh \
+		tests/creds-bsd-send-once-recv-none.sh \
+		tests/creds-send-once-recv-once.sh \
+		tests/creds-send-always-recv-always.sh
 else
 ucat_SOURCES += src/creds/scmcreds_nosend.c
+TESTS += tests/creds-send-none-recv-once.sh \
+		tests/creds-send-none-recv-always.sh
 endif
 else
 ucat_SOURCES += src/creds/creds_disabled.c

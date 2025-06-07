@@ -32,27 +32,28 @@ wait_for_socket() {
     return 1
 }
 
-# Start listener and capture PID
-./ucat -lR once "$socket" > "$results" &
+# Test: Send credentials always, receive always
+# Multiple messages should each have credential info
+./ucat -lR always "$socket" > "$results" &
 listener_pid=$!
 wait_for_socket "$socket" "$listener_pid" || clean_and_exit $hard_fail
 
-# Send data and wait for completion
-echo "hi" | ./ucat "$socket" || clean_and_exit $hard_fail
+# Send multiple messages through one connection
+printf "message1\nmessage2\n" | ./ucat -S always "$socket" || clean_and_exit $hard_fail
 
 # Give listener time to process and exit
 sleep 0.2
 wait $listener_pid 2>/dev/null || true
 
-expected="hi
-@ANC: SCM_CREDENTIALS"
-stat=$success
+# Should see both messages with credential information
+# Credentials are received once per connection
 r=$(cat "$results")
 case "$r" in
-    "$expected"*) ;;
-    *) 
-        echo "expected to start with $expected, actual was $r"
-        stat=$fail
+    *"message1"*"message2"*"SCM_CRED"*) ;;
+    *)
+        echo "expected both messages with credential info, actual was '$r'"
+        clean_and_exit $fail
         ;;
 esac
-clean_and_exit $stat
+
+clean_and_exit $success

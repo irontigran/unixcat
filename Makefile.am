@@ -18,7 +18,7 @@ ucat.1: $(srcdir)/man/long.h2m $(srcdir)/src/help.c $(srcdir)/src/main.c
 
 TESTS = tests/basic-send-recv.sh \
 		tests/pass-fds.sh
-dist_check_SCRIPTS = $(TESTS)
+dist_check_SCRIPTS = $(TESTS) tests/test-lib.sh
 
 if HAVE_FGETPATH
 ucat_SOURCES += src/printfd/printfd_getpath.c

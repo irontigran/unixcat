@@ -41,7 +41,8 @@ TESTS += tests/pass-scmcredentials.sh \
 		tests/creds-send-none-recv-always.sh \
 		tests/creds-linux-send-once-recv-none.sh \
 		tests/creds-send-once-recv-once.sh \
-		tests/creds-send-always-recv-always.sh
+		tests/creds-send-always-recv-always.sh \
+		tests/creds-specify-creds.sh
 else
 if SCM_CREDS
 if LOCAL_CREDS_PERSISTENT

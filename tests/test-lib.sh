@@ -49,16 +49,16 @@ start_listener_and_send() {
     message="$3"
     
     # Start listener
-    ./ucat $listener_opts "$socket" > "$results" &
+    ./ucat "$listener_opts" "$socket" > "$results" &
     listener_pid=$!
-    wait_for_socket "$socket" "$listener_pid" || clean_and_exit $hard_fail
+    wait_for_socket "$socket" "$listener_pid" || clean_and_exit "$hard_fail"
     
     # Send message
-    echo "$message" | ./ucat $sender_opts "$socket" || clean_and_exit $hard_fail
+    echo "$message" | ./ucat "$sender_opts" "$socket" || clean_and_exit "$hard_fail"
     
     # Wait for completion
     sleep 0.2
-    wait $listener_pid 2>/dev/null || true
+    wait "$listener_pid" 2>/dev/null || true
 }
 
 # Start listener only (for custom sending)
@@ -66,9 +66,9 @@ start_listener_and_send() {
 start_listener() {
     listener_opts="$1"
     
-    ./ucat $listener_opts "$socket" > "$results" &
+    ./ucat "$listener_opts" "$socket" > "$results" &
     listener_pid=$!
-    wait_for_socket "$socket" "$listener_pid" || clean_and_exit $hard_fail
+    wait_for_socket "$socket" "$listener_pid" || clean_and_exit "$hard_fail"
 }
 
 # Send message to existing listener
@@ -77,13 +77,13 @@ send_message() {
     sender_opts="$1"
     message="$2"
     
-    echo "$message" | ./ucat $sender_opts "$socket" || clean_and_exit $hard_fail
+    echo "$message" | ./ucat "$sender_opts" "$socket" || clean_and_exit "$hard_fail"
 }
 
 # Wait for listener to complete
 wait_for_listener() {
     sleep 0.2
-    wait $listener_pid 2>/dev/null || true
+    wait "$listener_pid" 2>/dev/null || true
 }
 
 # Read and return results
@@ -93,7 +93,7 @@ get_results() {
 
 # Standard test completion
 finish_test() {
-    clean_and_exit $success
+    clean_and_exit "$success"
 }
 
 # Check if results match expected string exactly
@@ -103,7 +103,7 @@ check_exact_match() {
     
     if [ "$actual" != "$expected" ]; then
         echo "expected '$expected', actual was '$actual'"
-        clean_and_exit $fail
+        clean_and_exit "$fail"
     fi
 }
 
@@ -117,7 +117,7 @@ check_starts_with_contains() {
         "$expected_start"*"$pattern"*) ;;
         *)
             echo "expected to start with '$expected_start' and contain '$pattern', actual was '$actual'"
-            clean_and_exit $fail
+            clean_and_exit "$fail"
             ;;
     esac
 }
@@ -131,7 +131,7 @@ check_starts_with() {
         "$expected_start"*) ;;
         *)
             echo "expected to start with '$expected_start', actual was '$actual'"
-            clean_and_exit $fail
+            clean_and_exit "$fail"
             ;;
     esac
 }

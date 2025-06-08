@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# shellcheck source=tests/test-lib.sh
 . "$(dirname "$0")/test-lib.sh"
 
 setup_test

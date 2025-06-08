@@ -2,11 +2,12 @@
 
 # Linux only allows privileged processes to change credentials
 skipped=77
-if [ $(id -u) != 0 ]; then
+if [ "$(id -u)" != 0 ]; then
     echo "skipping, requires root"
     exit $skipped
 fi
 
+# shellcheck source=tests/test-lib.sh
 . "$(dirname "$0")/test-lib.sh"
 
 setup_test

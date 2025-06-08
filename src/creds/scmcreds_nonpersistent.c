@@ -34,7 +34,7 @@ int Creds_confirm_recv_settings(int fd) {
 bool Creds_is_credential(int cmsg_type) { return cmsg_type == SCM_CREDS; }
 
 void Creds_print_credential(struct cmsghdr *cmsg) {
-    struct sockcred *sockc = (struct sockcred *)CMSG_DATA(cmsg);
+    const struct sockcred *sockc = (struct sockcred *)CMSG_DATA(cmsg);
     printf("@ANC: SCM_CREDS uid=%d,euid=%d,gid=%d,egid=%d", sockc->sc_uid,
            sockc->sc_euid, sockc->sc_gid, sockc->sc_egid);
     if (sockc->sc_ngroups > 0) {

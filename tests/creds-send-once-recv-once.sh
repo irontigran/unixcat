@@ -2,13 +2,21 @@
 
 # shellcheck source=tests/test-lib.sh
 . "$(dirname "$0")/test-lib.sh"
-
-setup_test
+socket=$(mktemp -u sock.XXX)
+results=$(mktemp result.XXX)
+trap 'rm -f $socket $results' EXIT
 
 # Test: Send credentials once, receive once
 # This should work on all systems that support credential sending
-start_listener_and_send "-lR once" "-S once" "test message"
 
-check_starts_with_contains "test message" "SCM_CRED"
+./ucat -lR once "$socket" > "$results" < /dev/tty &
+pid=$!
+check_listener_creation $pid "$socket" || exit $hard_fail
 
-finish_test
+send_twice_separately "test\n" | ./ucat -S once "$socket" || exit $hard_fail
+wait "$pid" 2>/dev/null || exit $hard_fail
+
+check_pattern "test
+@ANC: SCM_CRED*
+test" "$results"
+exit $?

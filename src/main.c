@@ -205,6 +205,17 @@ usage_exit:
     exit(EXIT_FAILURE);
 }
 
+static int set_nonblocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        return -1;
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        return -1;
+    }
+    return 0;
+}
+
 static void readwrite(int net_fd, AncillaryCfg cfg) {
     const size_t buflen = 1024;
     uint8_t stdinbuf[buflen];
@@ -223,6 +234,11 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
     pfds[neti].events = POLLIN;
     pfds[neto].fd = net_fd;
     pfds[neto].events = 0;
+
+    if (set_nonblocking(pfds[stdi].fd) != 0 || set_nonblocking(pfds[neti].fd) != 0) {
+        perror("nonblocking");
+        return;
+    }
 
     while (1) {
         // If the socket is gone, we can't continue.

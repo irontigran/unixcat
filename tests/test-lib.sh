@@ -3,33 +3,23 @@
 # Test library for ucat tests
 # Provides common functionality to reduce code duplication
 
-# Standard test setup
-setup_test() {
-    socket=$(mktemp -u sock.XXX)
-    results=$(mktemp result.XXX)
-    
-    success=0
-    fail=1
-    hard_fail=99
-}
+export success=0
+export fail=1
+export skipped=77
+export hard_fail=99
 
-# Cleanup function with optional additional files
-clean_and_exit() {
-    exit_code="$1"
-    shift
-    rm -f "$socket" "$results" "$@"
-    exit "$exit_code"
-}
-
-# Wait for socket to be ready with listener process check
-wait_for_socket() {
-    socket="$1"
-    listener_pid="$2"
+# Usage: check_listener_creation <pid> <socket>
+# Synchronization to make sure that a process (specified by pid) creates a unix
+# domain socket (specified by socket path) before moving on.
+check_listener_creation() {
+    pid="$1"
+    socket="$2"
     timeout=5
     count=0
     while [ $count -lt $timeout ]; do
-        # Check if listener process still exists
-        if ! kill -0 "$listener_pid" 2>/dev/null; then
+        # Check if listener process still exists to avoid too-long waits if the
+        # process died.
+        if ! kill -0 "$pid" 2>/dev/null; then
             return 1
         fi
         if [ -S "$socket" ]; then
@@ -41,71 +31,46 @@ wait_for_socket() {
     return 1
 }
 
-# Start listener with options and send message
-# Usage: start_listener_and_send "listener_options" "sender_options" "message"
-start_listener_and_send() {
-    listener_opts="$1"
-    sender_opts="$2" 
-    message="$3"
-    
-    # Start listener
-    ./ucat "$listener_opts" "$socket" > "$results" &
-    listener_pid=$!
-    wait_for_socket "$socket" "$listener_pid" || clean_and_exit "$hard_fail"
-    
-    # Send message
-    echo "$message" | ./ucat "$sender_opts" "$socket" || clean_and_exit "$hard_fail"
-    
-    # Wait for completion
-    sleep 0.2
-    wait "$listener_pid" 2>/dev/null || true
+# Usage: send_twice_separately <msg>
+# Prints the msg to stdout twice, with a slight delay in between, in order to
+# trigger two separate sendmsg calls, and therefore two recvmsg calls. This is
+# important for testing functionality where we expect the second recvmsg call
+# to be different than the first.
+send_twice_separately() {
+    msg="$1"
+    python3 -c \
+        "import time; print('$msg', end='', flush=True); time.sleep(0.1); print('$msg', end='', flush=True)"
 }
 
-# Start listener only (for custom sending)
-# Usage: start_listener "listener_options"
-start_listener() {
-    listener_opts="$1"
-    
-    ./ucat "$listener_opts" "$socket" > "$results" &
-    listener_pid=$!
-    wait_for_socket "$socket" "$listener_pid" || clean_and_exit "$hard_fail"
-}
-
-# Send message to existing listener
-# Usage: send_message "sender_options" "message"
-send_message() {
-    sender_opts="$1"
-    message="$2"
-    
-    echo "$message" | ./ucat "$sender_opts" "$socket" || clean_and_exit "$hard_fail"
-}
-
-# Wait for listener to complete
-wait_for_listener() {
-    sleep 0.2
-    wait "$listener_pid" 2>/dev/null || true
-}
-
-# Read and return results
-get_results() {
-    cat "$results"
-}
-
-# Standard test completion
-finish_test() {
-    clean_and_exit "$success"
-}
-
+# Usage: check_exact_match "match this exactly" filename
 # Check if results match expected string exactly
 check_exact_match() {
     expected="$1"
-    actual="$(get_results)"
+    actual=$(cat "$2")
     
     if [ "$actual" != "$expected" ]; then
         echo "expected '$expected', actual was '$actual'"
-        clean_and_exit "$fail"
+        return $fail
     fi
+    return $success
 }
+
+# Usage: check_pattern "first line\n*\nlast line\n" filename
+# Check if the file contents match a shell string pattern.
+check_pattern() {
+    pattern="$1"
+    str=$(cat "$2")
+
+    # shellcheck disable=SC2254
+    case "$str" in
+        $pattern) return $success ;;
+        *)
+            echo "expected to match '$pattern', actual was '$str'"
+            return $fail
+            ;;
+    esac
+}
+
 
 # Check if results start with expected string and contain pattern
 check_starts_with_contains() {

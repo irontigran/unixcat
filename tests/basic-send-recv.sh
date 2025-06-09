@@ -3,10 +3,20 @@
 # shellcheck source=tests/test-lib.sh
 . "$(dirname "$0")/test-lib.sh"
 
-setup_test
+socket=$(mktemp -u sock.XXX)
+results=$(mktemp result.XXX)
+trap 'rm -f $socket $results' EXIT
 
-start_listener_and_send "-l" "" "hi"
+# Basic send and receive tests; sending a message from a sender to listener
+# should work.
 
-check_exact_match "hi"
+./ucat -l "$socket" > "$results" &
+pid=$!
+check_listener_creation $pid "$socket" || exit $hard_fail
 
-finish_test
+message=hi
+echo $message | ./ucat "$socket" || exit $hard_fail
+wait "$pid" 2>/dev/null || exit $hard_fail
+
+check_exact_match $message "$results"
+exit $?

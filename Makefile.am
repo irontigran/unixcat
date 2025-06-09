@@ -34,39 +34,40 @@ endif
 endif
 endif
 
+sending_tests = tests/creds-send-always-recv-always.sh \
+				tests/creds-send-once-recv-always.sh \
+				tests/creds-send-once-recv-once.sh
+nonsending_tests = tests/creds-send-none-recv-always.sh \
+				   tests/creds-send-none-recv-once.sh
+
 if SCM_CREDENTIALS
 ucat_SOURCES += src/creds/scmcredentials.c
-TESTS += tests/pass-scmcredentials.sh \
-		tests/creds-send-none-recv-once.sh \
-		tests/creds-send-none-recv-always.sh \
-		tests/creds-linux-send-once-recv-none.sh \
-		tests/creds-send-once-recv-once.sh \
-		tests/creds-send-always-recv-always.sh \
-		tests/creds-specify-creds.sh
-else
+TESTS += $(sending_tests) $(nonsending_tests)
+TESTS += tests/creds-send-always-recv-always-with-pid.sh \
+		 tests/creds-send-once-recv-always-with-pid.sh \
+		 tests/creds-send-always-recv-none-linux.sh \
+		 tests/creds-send-always-recv-once-linux.sh \
+		 tests/creds-send-once-recv-none-linux.sh
+else !SCM_CREDENTIALS
 if SCM_CREDS
+TESTS += $(nonsending_tests)
 if LOCAL_CREDS_PERSISTENT
 ucat_SOURCES += src/creds/scmcreds_persistent.c
-TESTS += tests/pass-scmcreds-persistent.sh
-else
+else !LOCAL_CREDS_PERSISTENT
 ucat_SOURCES += src/creds/scmcreds_nonpersistent.c
-TESTS += tests/pass-scmcreds-nonpersistent.sh
-endif
+endif !LOCAL_CREDS_PERSISTENT
 if SEND_CREDS
+TESTS += $(sending_tests)
+TESTS += tests/creds-send-always-recv-none-bsd.sh \
+		 tests/creds-send-always-recv-once-bsd.sh \
+		 tests/creds-send-once-recv-none-bsd.sh
 ucat_SOURCES += src/creds/scmcreds_send.c
-TESTS += tests/creds-send-none-recv-once.sh \
-		tests/creds-send-none-recv-always.sh \
-		tests/creds-bsd-send-once-recv-none.sh \
-		tests/creds-send-once-recv-once.sh \
-		tests/creds-send-always-recv-always.sh
-else
+else !SEND_CREDS
 ucat_SOURCES += src/creds/scmcreds_nosend.c
-TESTS += tests/creds-send-none-recv-once.sh \
-		tests/creds-send-none-recv-always.sh
-endif
-else
+endif !SEND_CREDS
+else !SCM_CREDS
 ucat_SOURCES += src/creds/creds_disabled.c
-endif
-endif
+endif !SCM_CREDS
+endif !SCM_CREDENTIALS
 
 

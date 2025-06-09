@@ -12,6 +12,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 AC_PROG_CXX
 AM_MISSING_PROG(HELP2MAN, help2man)
+AM_MISSING_PROG(PYTHON3, python3)
 
 # Checks for libraries.
 

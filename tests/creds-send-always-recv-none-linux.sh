@@ -7,17 +7,16 @@ socket=$(mktemp -u sock.XXX)
 results=$(mktemp result.XXX)
 trap 'rm -f $socket $results' EXIT
 
-# Test: No sending option, just receive once. The receiver should get
-# credentials only on the first message.
+# Test: specifying -S always but no -R option on Linux should result in no
+# credentials being sent.
 
-./ucat -lR once "$socket" > "$results" < /dev/tty &
+./ucat -l "$socket" > "$results" &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 
-send_twice_separately "test\n" | ./ucat "$socket" || exit $hard_fail
+printf "test1\ntest2\n" | ./ucat -S always "$socket" || exit $hard_fail
 wait "$pid" 2>/dev/null || exit $hard_fail
 
-check_pattern "test
-@ANC: SCM_CRED*
-test" "$results"
+check_exact_match "test1
+test2" "$results"
 exit $?

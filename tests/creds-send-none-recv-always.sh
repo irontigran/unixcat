@@ -2,21 +2,22 @@
 
 # shellcheck source=tests/test-lib.sh
 . "$(dirname "$0")/test-lib.sh"
+socket=$(mktemp -u sock.XXX)
+results=$(mktemp result.XXX)
+trap 'rm -f $socket $results' EXIT
 
-setup_test
+# Test: No credentials explicitly sent, but receive once requested
+# The receiver will still get credentials from the connecting process
 
-# Test: No credentials explicitly sent, but receive always requested
-# Send multiple messages through a single connection to trigger multiple recvmsg calls
-start_listener "-lR always"
+./ucat -lR always "$socket" > "$results" < /dev/tty &
+pid=$!
+check_listener_creation $pid "$socket" || exit $hard_fail
 
-# Send multiple messages through one connection using printf
-printf "message1\nmessage2\n" | ./ucat "$socket" || clean_and_exit $hard_fail
+send_twice_separately "test\n" | ./ucat "$socket" || exit $hard_fail
+wait "$pid" 2>/dev/null || exit $hard_fail
 
-wait_for_listener
-
-# Should see both messages with credential information
-# On Linux with "always" mode, credentials are received once per connection
-check_starts_with_contains "message1" "message2"
-check_starts_with_contains "message1" "SCM_CRED"
-
-finish_test
+check_pattern "test
+@ANC: SCM_CRED*
+test
+@ANC: SCM_CRED*" "$results"
+exit $?

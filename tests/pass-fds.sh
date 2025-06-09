@@ -3,7 +3,8 @@
 # shellcheck source=tests/test-lib.sh
 . "$(dirname "$0")/test-lib.sh"
 
-setup_test
+socket=$(mktemp -u sock.XXX)
+results=$(mktemp result.XXX)
 
 # macs have /tmp as a symlink to /private/tmp, so make sure the file path
 # matches after following the symlink since we're testing for the correct
@@ -13,15 +14,15 @@ if test -d /private/tmp; then
 else
     fdfile=$(mktemp /tmp/fd.XXX)
 fi
+trap 'rm -f $socket $results $fdfile' EXIT
 
-start_listener "-l"
+./ucat -l "$socket" > "$results" &
+pid=$!
+check_listener_creation $pid "$socket" || exit $hard_fail
 
-echo "hi" | ./ucat --fd "$fdfile" "$socket" || clean_and_exit $hard_fail "$fdfile"
+printf "test1" | ./ucat --fd "$fdfile" "$socket" || exit $hard_fail
+wait "$pid" 2>/dev/null || exit $hard_fail
 
-wait_for_listener
-
-expected="hi
-@ANC: SCM_RIGHTS $fdfile"
-check_exact_match "$expected"
-
-clean_and_exit $success "$fdfile"
+expected="test1@ANC: SCM_RIGHTS $fdfile"
+check_exact_match "$expected" "$results"
+exit $?

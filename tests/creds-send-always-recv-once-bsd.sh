@@ -22,6 +22,5 @@ wait "$pid" 2>/dev/null || exit $hard_fail
 check_pattern "test
 @ANC: SCM_CREDS *uid*euid*gid*egid*
 test
-@ANC: SCM_CREDS *pid*uid*euid*gid*"
-"$results"
+@ANC: SCM_CREDS *pid*uid*euid*gid*" "$results"
 exit $?

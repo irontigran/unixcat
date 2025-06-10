@@ -21,6 +21,7 @@ trap 'rm -f $socket $results' EXIT
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 
+check_python || exit $skipped
 send_twice_separately "test\n" | ./ucat --pid 1 --uid 0 --gid 0 -S once "$socket" || exit $hard_fail
 wait "$pid" 2>/dev/null || exit $hard_fail
 

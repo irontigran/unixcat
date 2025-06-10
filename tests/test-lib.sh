@@ -42,6 +42,16 @@ send_twice_separately() {
         "import time; print('$msg', end='', flush=True); time.sleep(0.1); print('$msg', end='', flush=True)"
 }
 
+# send_twice separately requires python, but we can't check inside that
+# function because it's used in a pipeline. So check before calling
+# send_twice_separately using this.
+check_python() {
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "skipping: no python3 available"
+        return $skipped
+    fi
+}
+
 # Usage: check_exact_match "match this exactly" filename
 # Check if results match expected string exactly
 check_exact_match() {

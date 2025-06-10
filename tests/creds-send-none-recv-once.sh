@@ -10,7 +10,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: No sending option, just receive once. The receiver should get
 # credentials only on the first message.
 
-./ucat -lR once "$socket" > "$results" < /dev/tty &
+./ucat -lR once "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

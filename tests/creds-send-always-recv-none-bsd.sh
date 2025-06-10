@@ -10,7 +10,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: BSD-style credentials - send credentials once, but no receiving specified.
 # On BSD systems that support sending, credentials may be sent without a receive option.
 
-./ucat -l "$socket" > "$results" < /dev/tty &
+./ucat -l "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

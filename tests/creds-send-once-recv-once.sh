@@ -9,7 +9,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: Send credentials once, receive once
 # This should work on all systems that support credential sending
 
-./ucat -lR once "$socket" > "$results" < /dev/tty &
+./ucat -lR once "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

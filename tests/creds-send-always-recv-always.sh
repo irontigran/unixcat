@@ -9,7 +9,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: Send credentials always, receive always
 # Multiple messages should each have credential info
 
-./ucat -lR always "$socket" > "$results" < /dev/tty &
+./ucat -lR always "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

@@ -11,7 +11,7 @@ trap 'rm -f $socket $results' EXIT
 # credential messages. On the first message, the -R will overrule -S, and all
 # of the following messages will be of the -S type.
 
-./ucat -lR once "$socket" > "$results" < /dev/tty &
+./ucat -lR once "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

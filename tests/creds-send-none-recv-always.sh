@@ -9,7 +9,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: No credentials explicitly sent, but receive once requested
 # The receiver will still get credentials from the connecting process
 
-./ucat -lR always "$socket" > "$results" < /dev/tty &
+./ucat -lR always "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

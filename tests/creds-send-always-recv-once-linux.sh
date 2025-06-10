@@ -10,7 +10,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: specifying -S always with -R once on Linux should result in only one
 # credential message sent.
 
-./ucat -lR once "$socket" > "$results" < /dev/tty &
+./ucat -lR once "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

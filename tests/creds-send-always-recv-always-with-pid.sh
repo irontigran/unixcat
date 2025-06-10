@@ -16,7 +16,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: Linux allows you to change credentials when sending them. The output
 # should reflect the credentials provided on the command line.
 
-./ucat -lR always "$socket" > "$results" < /dev/tty &
+./ucat -lR always "$socket" > "$results" < $(tty) &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

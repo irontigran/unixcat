@@ -8,7 +8,7 @@ trap 'rm -f $socket $results' EXIT
 
 # Test: Send credentials once, receive always acts the same as receive always.
 
-./ucat -lR always "$socket" > "$results" < $(tty) &
+bg_hold_stdin_open "./ucat -lR always $socket > $results"
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

@@ -189,7 +189,8 @@ int Net_recv_and_print(int fd) {
         int numfds;
         int fds[SCM_MAX_FD];
         while (cmsg != NULL) {
-            if (cmsg->cmsg_type == SCM_RIGHTS) {
+            if (cmsg->cmsg_level == SOL_SOCKET &&
+                cmsg->cmsg_type == SCM_RIGHTS) {
                 numfds = (cmsg->cmsg_len - CMSG_LEN(0)) / sizeof(int);
                 if (numfds > SCM_MAX_FD) {
                     numfds = SCM_MAX_FD;  // silently truncate if sent too
@@ -200,7 +201,7 @@ int Net_recv_and_print(int fd) {
                     PFD_print_fd(fds[i]);
                     close(fds[i]);
                 }
-            } else if (Creds_is_credential(cmsg->cmsg_type)) {
+            } else if (Creds_is_credential(cmsg->cmsg_level, cmsg->cmsg_type)) {
                 Creds_print_credential(cmsg);
             } else if (Security_is_context(cmsg->cmsg_level, cmsg->cmsg_type)) {
                 Security_print_seccxt(cmsg);

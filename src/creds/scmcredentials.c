@@ -65,7 +65,9 @@ int Creds_confirm_recv_settings(int fd) {
     return setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &off, sizeof(int));
 }
 
-bool Creds_is_credential(int cmsg_type) { return cmsg_type == SCM_CREDENTIALS; }
+bool Creds_is_credential(int cmsg_level, int cmsg_type) {
+    return (cmsg_level == SOL_SOCKET && cmsg_type == SCM_CREDENTIALS);
+}
 
 void Creds_print_credential(struct cmsghdr *cmsg) {
     const struct ucred *credp = (struct ucred *)CMSG_DATA(cmsg);

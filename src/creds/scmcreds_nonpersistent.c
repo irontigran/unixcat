@@ -31,7 +31,9 @@ int Creds_confirm_recv_settings(int fd) {
     return setsockopt(fd, SOL_LOCAL, LOCAL_CREDS, &on, sizeof(int));
 }
 
-bool Creds_is_credential(int cmsg_type) { return cmsg_type == SCM_CREDS; }
+bool Creds_is_credential(int cmsg_level, int cmsg_type) {
+    return (cmsg_level == SOL_SOCKET && cmsg_type == SCM_CREDS);
+}
 
 void Creds_print_credential(struct cmsghdr *cmsg) {
     const struct sockcred *sockc = (struct sockcred *)CMSG_DATA(cmsg);

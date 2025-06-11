@@ -23,8 +23,9 @@ int Creds_confirm_recv_settings(int fd) {
                // at the start.
 }
 
-bool Creds_is_credential(int cmsg_type) {
-    return cmsg_type == SCM_CREDS || cmsg_type == SCM_CREDS2;
+bool Creds_is_credential(int cmsg_level, int cmsg_type) {
+    return (cmsg_level == SOL_SOCKET &&
+            (cmsg_type == SCM_CREDS || cmsg_type == SCM_CREDS2));
 }
 
 void Creds_print_credential(struct cmsghdr *cmsg) {

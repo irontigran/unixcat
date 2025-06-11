@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     config.numfds = 0;
     config.send_creds = 0;
     config.recv_creds = 0;
+    config.security = false;
     config.pid = getpid();
     config.uid = getuid();
     config.gid = getgid();
@@ -71,8 +72,7 @@ int main(int argc, char **argv) {
                     exit(EXIT_SUCCESS);
                 }
                 if (strcmp(opts.longopts[option_index].name, "security") == 0) {
-                    printf("set the security option\n");
-                    exit(EXIT_SUCCESS);
+                    config.security = true;
                 }
                 break;
             case 'l':
@@ -200,6 +200,13 @@ int main(int argc, char **argv) {
     if (config.recv_creds < 0) {
         if (Creds_turn_on_persistent(clientfd) < 0) {
             perror("enabling creds always");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (config.security) {
+        if (Security_turn_on_passsec(clientfd) < 0) {
+            perror("enabling passsec");
             exit(EXIT_FAILURE);
         }
     }

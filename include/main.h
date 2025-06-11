@@ -28,6 +28,9 @@ typedef struct ancillary_cfg {
     pid_t pid;
     uid_t uid;
     gid_t gid;
+
+    // Linux only: turn on passing an SELinux context.
+    bool security;
 } AncillaryCfg;
 
 #endif  // MAIN_H

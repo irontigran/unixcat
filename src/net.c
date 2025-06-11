@@ -14,6 +14,7 @@
 #include "main.h"
 #include "net.h"
 #include "printfd.h"
+#include "security.h"
 
 int Net_conn(const char *dst, const char *src) {
     struct sockaddr_un to;
@@ -201,6 +202,8 @@ int Net_recv_and_print(int fd) {
                 }
             } else if (Creds_is_credential(cmsg->cmsg_type)) {
                 Creds_print_credential(cmsg);
+            } else if (Security_is_context(cmsg->cmsg_level, cmsg->cmsg_type)) {
+                Security_print_seccxt(cmsg);
             } else {
                 fprintf(stderr, "unrecognized ancillary data\n");
             }

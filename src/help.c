@@ -3,6 +3,7 @@
 #include "config.h"
 #include "creds.h"
 #include "help.h"
+#include "security.h"
 
 void usage(const char *progname) {
     fprintf(stderr,
@@ -15,6 +16,7 @@ void usage(const char *progname) {
             "  -f, --fd <path>      pass a file descriptor corresponding to "
             "<path>\n"
             "%s"
+            "%s"
             "  --help       display this help and exit\n"
             "  --version    output version information and exit\n\n"
             "Examples:\n"
@@ -26,7 +28,7 @@ void usage(const char *progname) {
             "first message\n"
             "  ucat --pid 1 /tmp/sock       -> pretend to be pid 1 when "
             "sending creds\n",
-            progname, Creds_help_message);
+            progname, Creds_help_message, Security_help_message);
 }
 
 void version() { fprintf(stderr, "%s\n", VERSION); }

@@ -15,6 +15,7 @@
 #include "main.h"
 #include "net.h"
 #include "options.h"
+#include "security.h"
 
 static void readwrite(int net_fd, AncillaryCfg cfg);
 static ssize_t Std_read(int fd, uint8_t *buf, size_t buflen);
@@ -53,6 +54,7 @@ int main(int argc, char **argv) {
     opts.longopts = NULL;
     opts = Options_append(opts, default_shorts, default_longs);
     opts = Creds_register_options(opts);
+    opts = Security_register_options(opts);
 
     int option_index = 0;
     int c;
@@ -60,12 +62,16 @@ int main(int argc, char **argv) {
                             &option_index)) != -1) {
         switch (c) {
             case 0:
-                if (option_index == 0) {
+                if (strcmp(opts.longopts[option_index].name, "help") == 0) {
                     usage(argv[0]);
                     exit(EXIT_SUCCESS);
                 }
-                if (option_index == 1) {
+                if (strcmp(opts.longopts[option_index].name, "version") == 0) {
                     version();
+                    exit(EXIT_SUCCESS);
+                }
+                if (strcmp(opts.longopts[option_index].name, "security") == 0) {
+                    printf("set the security option\n");
                     exit(EXIT_SUCCESS);
                 }
                 break;
@@ -235,7 +241,8 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
     pfds[neto].fd = net_fd;
     pfds[neto].events = 0;
 
-    if (set_nonblocking(pfds[stdi].fd) != 0 || set_nonblocking(pfds[neti].fd) != 0) {
+    if (set_nonblocking(pfds[stdi].fd) != 0 ||
+        set_nonblocking(pfds[neti].fd) != 0) {
         perror("nonblocking");
         return;
     }

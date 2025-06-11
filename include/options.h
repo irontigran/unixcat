@@ -1,6 +1,8 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+#include <sys/types.h>
+
 typedef struct optbundle {
     char *shortopts;
     struct option *longopts;

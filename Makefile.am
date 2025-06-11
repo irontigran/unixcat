@@ -70,4 +70,8 @@ ucat_SOURCES += src/creds/creds_disabled.c
 endif !SCM_CREDS
 endif !SCM_CREDENTIALS
 
-
+if HAVE_PASSSEC
+ucat_SOURCES += src/security/enabled.c
+else
+ucat_SOURCES += src/security/disabled.c
+endif !HAVE_PASSSEC

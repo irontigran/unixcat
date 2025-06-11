@@ -122,13 +122,26 @@ AC_COMPILE_IFELSE([
         ])
     ]
 )
-        
 
 AM_CONDITIONAL([SCM_CREDENTIALS], [test "x$scm_credentials" = "xyes"])
 AM_CONDITIONAL([SCM_CREDS], [test "x$scm_creds" = "xyes"])
 AM_CONDITIONAL([SEND_CREDS], [test "x$send_creds" = "xyes"])
 AM_CONDITIONAL([LOCAL_CREDS_PERSISTENT], [test "x$local_creds_persistent" = "xyes"])
 AM_CONDITIONAL([CREDS_DISABLED], [test "x$creds_disabled" = "xyes"])
+# End credential passing tests.
+
+# Check if the system supports passing SELinux security contexts.
+AC_MSG_CHECKING([for SO_PASSSEC])
+AC_COMPILE_IFELSE(
+                  [AC_LANG_PROGRAM(
+                   [#include <sys/socket.h>],
+                   [int cmd = SO_PASSSEC;])],
+                  [AC_MSG_RESULT([yes])
+                  have_passsec=yes],
+                  [AC_MSG_RESULT([no])
+                  have_passsec=no])
+AM_CONDITIONAL([HAVE_PASSSEC], [test "x$have_passsec" = "xyes"])
+# End SELinux security context tests.
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

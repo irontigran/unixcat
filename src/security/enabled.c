@@ -24,6 +24,8 @@ int Security_turn_on_passsec(int fd) {
 }
 
 bool Security_is_context(int cmsg_level, int cmsg_type) {
+    // SCM_SECURITY is defined in the kernel, but some/most libcs don't define
+    // it.
 #ifndef SCM_SECURITY
 #define SCM_SECURITY 0x3
 #endif

@@ -72,6 +72,7 @@ endif !SCM_CREDENTIALS
 
 if HAVE_PASSSEC
 ucat_SOURCES += src/security/enabled.c
+TESTS += tests/pass-seccxt.sh
 else
 ucat_SOURCES += src/security/disabled.c
 endif !HAVE_PASSSEC

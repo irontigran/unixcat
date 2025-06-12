@@ -197,7 +197,7 @@ int Net_recv_and_print(int fd) {
             written += ret;
         }
 
-        if (msg.msg_flags | MSG_CTRUNC) {
+        if (msg.msg_flags & MSG_CTRUNC) {
             printf("@ANC warning: control messages truncated\n");
         }
 

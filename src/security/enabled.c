@@ -8,7 +8,7 @@
 #include "security.h"
 
 char *Security_help_message =
-    "  --security   send the SELinux security context\n";
+    "  --security   receive peer's SELinux security context\n";
 
 OptBundle Security_register_options(OptBundle existing) {
     const struct option longopts[] = {

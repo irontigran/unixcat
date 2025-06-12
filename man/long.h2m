@@ -180,3 +180,10 @@ sudo ucat --uid 0 /tmp/sock
 .PP
 
 only pretends to be root for the first message, then all future messages have the real credentials.
+
+.SS SELinux Security Contexts
+
+On Linux, when SELinux is enabled, you can pass security context labels across unix domain sockets.
+Use
+.B --security
+to receive your peer's security context label with every message.

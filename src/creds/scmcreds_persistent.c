@@ -30,7 +30,7 @@ bool Creds_is_credential(int cmsg_level, int cmsg_type) {
 
 void Creds_print_credential(struct cmsghdr *cmsg) {
     switch (cmsg->cmsg_type) {
-        case SCM_CREDS:;  // blank statement between label a variable
+        case SCM_CREDS:;  // blank statement between label and variable
                           // declaration.
             const struct cmsgcred *cmsgc = (struct cmsgcred *)CMSG_DATA(cmsg);
             struct sockcred *sockc = (struct sockcred *)CMSG_DATA(cmsg);
@@ -70,7 +70,7 @@ void Creds_print_credential(struct cmsghdr *cmsg) {
                 printf("\n");
             }
             break;
-        case SCM_CREDS2:;  // blank statement between label a variable
+        case SCM_CREDS2:;  // blank statement between label and variable
                            // declaration.
             const struct sockcred2 *credp = (struct sockcred2 *)CMSG_DATA(cmsg);
             printf("@ANC: SCM_CREDS2 pid=%d,uid=%d,euid=%d,gid=%d,egid=%d",

@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include <errno.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -156,7 +157,17 @@ int Net_recv_and_print(int fd) {
     struct iovec iov = {.iov_base = buf, .iov_len = buflen};
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
-    char cmsgbuf[CMSG_SPACE(sizeof(int) * SCM_MAX_FD)];
+
+    // Even when providing this much space, it's still theoretically possible
+    // to provide a longer cmsg then we have space for. You'd have to work
+    // pretty hard to do it, and it is only possible on some BSDs where there
+    // are lots and lots of supplemental groups, so we'll still need to check
+    // for truncation later.
+    const size_t max_cmsg = CMSG_SPACE(sizeof(int) * SCM_MAX_FD) +
+                            CMSG_SPACE(Creds_sizeof_send_struct()) +
+                            CMSG_SPACE(NAME_MAX);
+
+    char cmsgbuf[max_cmsg];
     memset(cmsgbuf, 0, sizeof(cmsgbuf));
     msg.msg_control = cmsgbuf;
     msg.msg_controllen = sizeof(cmsgbuf);
@@ -185,6 +196,11 @@ int Net_recv_and_print(int fd) {
             }
             written += ret;
         }
+
+        if (msg.msg_flags | MSG_CTRUNC) {
+            printf("@ANC warning: control messages truncated\n");
+        }
+
         struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
         int numfds;
         int fds[SCM_MAX_FD];

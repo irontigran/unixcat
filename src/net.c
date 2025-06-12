@@ -17,7 +17,7 @@
 #include "printfd.h"
 #include "security.h"
 
-int Net_conn(const char *dst, const char *src) {
+int Net_conn(const char *dst, int proto, const char *src) {
     struct sockaddr_un to;
     if (strlen(dst) >= sizeof(to.sun_path)) {
         errno = ENAMETOOLONG;
@@ -25,23 +25,40 @@ int Net_conn(const char *dst, const char *src) {
     }
 
     int fd, ret, tmperr;
-    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(AF_UNIX, proto, 0)) < 0) {
         return -1;
     }
     // If provided a source address, we'll try to bind our socket to that
-    // address before connecting.
-    if (src != NULL) {
+    // address before connecting.  If using a datagram socket, we _must_ have a
+    // source address.
+    if (src != NULL || proto == SOCK_DGRAM) {
         struct sockaddr_un from;
-        if (strlen(src) >= sizeof(from.sun_path)) {
-            errno = ENAMETOOLONG;
-            ret = -1;
-            goto err;
-        }
         memset(&from, 0, sizeof(from));
         from.sun_family = AF_UNIX;
-        strcpy(from.sun_path, src);
+        if (src != NULL) {
+            if (strlen(src) >= sizeof(from.sun_path)) {
+                errno = ENAMETOOLONG;
+                ret = -2;
+                goto err;
+            }
+            strcpy(from.sun_path, src);
+        } else {
+            char tmpsock[strlen("/tmp/ucat.XXXXXX") + 1];
+            memset(tmpsock, 0, sizeof(tmpsock));
+            // mktemp isn't safe, but we can't avoid the race condition by
+            // creating the file immediately; bind needs to create the socket
+            // in the filesystem. If the file is created in the meantime, bind
+            // will fail and we'll just exit out.
+            if (mktemp(tmpsock) == NULL) {
+                perror("mktemp");
+                ret = -3;
+                goto err;
+            }
+            strcpy(from.sun_path, tmpsock);
+        }
+
         if (bind(fd, (struct sockaddr *)&from, sizeof(from)) < 0) {
-            ret = -2;
+            ret = -4;
             goto err;
         }
     }
@@ -51,7 +68,7 @@ int Net_conn(const char *dst, const char *src) {
     strcpy(to.sun_path, dst);
 
     if (connect(fd, (struct sockaddr *)&to, sizeof(to)) < 0) {
-        ret = -3;
+        ret = -4;
         goto err;
     }
     return fd;
@@ -62,14 +79,14 @@ err:
     return ret;
 }
 
-int Net_listen(const char *path) {
+int Net_bind(const char *path, int proto) {
     struct sockaddr_un un;
     if (strlen(path) >= sizeof(un.sun_path)) {
         errno = ENAMETOOLONG;
         return -1;
     }
     int fd;
-    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(AF_UNIX, proto, 0)) < 0) {
         return -2;
     }
 
@@ -89,10 +106,6 @@ int Net_listen(const char *path) {
         ret = -3;
         goto err;
     }
-    if (listen(fd, 0) < 0) {
-        ret = -4;
-        goto err;
-    }
     return fd;
 err:;
     int tmperr = errno;
@@ -102,6 +115,9 @@ err:;
 }
 
 int Net_accept(int fd) {
+    if (listen(fd, 0) < 0) {
+        return -1;
+    }
     int newfd;
     if ((newfd = accept(fd, NULL, NULL)) < 0) {
         return -1;

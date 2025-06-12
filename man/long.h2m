@@ -24,6 +24,12 @@ Use
 .B -l / --listen
 to put unixcat in listening mode.
 
+[Protocol Options]
+
+The default is for unixcat to use stream sockets.
+You can set it to use datagram sockets with
+.B -u / --udp.
+
 [Ancillary Messages]
 
 unixcat can send ancillary messages (sometimes known as control information) and will do its best to print ancillary messages to stdout when it receives them.

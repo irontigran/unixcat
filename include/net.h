@@ -12,19 +12,18 @@
  * Returns the new connected socket file descriptor, or a negative integer on
  * error.
  */
-int Net_conn(const char *dst, const char *src);
+int Net_conn(const char *dst, int proto, const char *src);
 
-/* Listen on a unix domain socket.
+/* Create a unix domain socket and bind it to a path.
  *
- * path is the pathname to listen on. Will return an error if the path already
- * exists.
+ * path is the pathname. Will return an error if the path already exists.
  *
- * Returns the new listening socket file descriptor, or a negative integer on
- * error.
+ * Returns the new socket file descriptor, or a negative integer on error.
  */
-int Net_listen(const char *path);
+int Net_bind(const char *path, int proto);
 
-/* Accept an incoming connection on a listening socket.
+/* Listen for and accept an incoming connection on a socket. Will block until a
+ * connection is received.
  *
  * fd is the listening socket file descriptor.
  *

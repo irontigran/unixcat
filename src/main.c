@@ -22,6 +22,7 @@ static ssize_t Std_read(int fd, uint8_t *buf, size_t buflen);
 
 int main(int argc, char **argv) {
     bool listen = false;
+    int proto = SOCK_STREAM;
     const char *source = NULL;
     int fd;
     AncillaryCfg config;
@@ -33,7 +34,7 @@ int main(int argc, char **argv) {
     config.uid = getuid();
     config.gid = getgid();
 
-    const char *default_shorts = "+ls:f:";
+    const char *default_shorts = "+ls:uf:";
     const struct option default_longs[] = {
         (struct option){
             .name = "help", .has_arg = no_argument, .flag = NULL, .val = 0},
@@ -45,6 +46,8 @@ int main(int argc, char **argv) {
                         .has_arg = required_argument,
                         .flag = NULL,
                         .val = 's'},
+        (struct option){
+            .name = "udp", .has_arg = no_argument, .flag = NULL, .val = 'u'},
         (struct option){.name = "fd",
                         .has_arg = required_argument,
                         .flag = NULL,
@@ -105,6 +108,9 @@ int main(int argc, char **argv) {
             case 's':
                 source = optarg;
                 break;
+            case 'u':
+                proto = SOCK_DGRAM;
+                break;
             case 'f':
                 if (config.numfds >= SCM_MAX_FD) {
                     break;
@@ -157,7 +163,7 @@ int main(int argc, char **argv) {
     int clientfd;
     if (listen) {
         int listenfd;
-        if ((listenfd = Net_listen(path)) < 0) {
+        if ((listenfd = Net_bind(path, proto)) < 0) {
             perror("on bind");
             exit(EXIT_FAILURE);
         }
@@ -173,12 +179,34 @@ int main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
         }
-        if ((clientfd = Net_accept(listenfd)) < 0) {
-            perror("on accept");
-            exit(EXIT_FAILURE);
+        if (proto != SOCK_DGRAM) {
+            // For connection-oriented sockets, we have to listen and accept a
+            // connection to get a socket to send data on.
+            if ((clientfd = Net_accept(listenfd)) < 0) {
+                perror("on accept");
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            // For datagram sockets, the socket we created _is_ the socket to
+            // send data on. Once we get some data, we connect back to it so
+            // that we only send a receive data from the socket we got data
+            // from initially.
+            clientfd = listenfd;
+            char buf[256];
+            struct sockaddr_storage peer;
+            socklen_t peerlen = sizeof(peer);
+            if (recvfrom(clientfd, buf, sizeof(buf), MSG_PEEK,
+                         (struct sockaddr *)&peer, &peerlen) < 0) {
+                perror("recvfrom");
+                exit(EXIT_FAILURE);
+            }
+            if (connect(clientfd, (struct sockaddr *)&peer, peerlen) < 0) {
+                perror("connect");
+                exit(EXIT_FAILURE);
+            }
         }
     } else {
-        if ((clientfd = Net_conn(path, source)) < 0) {
+        if ((clientfd = Net_conn(path, proto, source)) < 0) {
             perror("on connect");
             exit(EXIT_FAILURE);
         }
@@ -190,7 +218,7 @@ int main(int argc, char **argv) {
     // functions for enabling passed credentials just once or persistently.
     // Some systems also want the option to be enabled on the listening socket
     // in order to work.  To cover all of our bases, we enable any relevant
-    // options on both the listening socket and the accepted socket.
+    // options on both the listening socket and the client socket.
     if (config.recv_creds > 0) {
         if (Creds_turn_on_once(clientfd) < 0) {
             perror("enabling creds once");
@@ -203,7 +231,6 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
-
     if (config.security) {
         if (Security_turn_on_passsec(clientfd) < 0) {
             perror("enabling passsec");

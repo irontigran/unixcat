@@ -33,15 +33,15 @@ OptBundle Creds_register_options(OptBundle existing) {
         (struct option){.name = "pid",
                         .has_arg = required_argument,
                         .flag = NULL,
-                        .val = 'p'},
+                        .val = 0},
         (struct option){.name = "uid",
                         .has_arg = required_argument,
                         .flag = NULL,
-                        .val = 'u'},
+                        .val = 0},
         (struct option){.name = "gid",
                         .has_arg = required_argument,
                         .flag = NULL,
-                        .val = 'g'},
+                        .val = 0},
         (struct option){.name = NULL, .has_arg = 0, .flag = NULL, .val = 0}};
     return Options_append(existing, "R:S:", longopts);
 }

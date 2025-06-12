@@ -71,6 +71,30 @@ int main(int argc, char **argv) {
                     version();
                     exit(EXIT_SUCCESS);
                 }
+                if (strcmp(opts.longopts[option_index].name, "pid") == 0) {
+                    if (!atopid(optarg, &config.pid)) {
+                        exit(EXIT_FAILURE);
+                    }
+                    if (config.send_creds == 0) {
+                        config.send_creds = 1;
+                    }
+                }
+                if (strcmp(opts.longopts[option_index].name, "uid") == 0) {
+                    if (!atouid(optarg, &config.uid)) {
+                        exit(EXIT_FAILURE);
+                    }
+                    if (config.send_creds == 0) {
+                        config.send_creds = 1;
+                    }
+                }
+                if (strcmp(opts.longopts[option_index].name, "gid") == 0) {
+                    if (!atogid(optarg, &config.gid)) {
+                        exit(EXIT_FAILURE);
+                    }
+                    if (config.send_creds == 0) {
+                        config.send_creds = 1;
+                    }
+                }
                 if (strcmp(opts.longopts[option_index].name, "security") == 0) {
                     config.security = true;
                 }
@@ -119,30 +143,6 @@ int main(int argc, char **argv) {
                             "or 'always')\n",
                             optarg);
                     exit(EXIT_FAILURE);
-                }
-                break;
-            case 'p':
-                if (!atopid(optarg, &config.pid)) {
-                    exit(EXIT_FAILURE);
-                }
-                if (config.send_creds == 0) {
-                    config.send_creds = 1;
-                }
-                break;
-            case 'u':
-                if (!atouid(optarg, &config.uid)) {
-                    exit(EXIT_FAILURE);
-                }
-                if (config.send_creds == 0) {
-                    config.send_creds = 1;
-                }
-                break;
-            case 'g':
-                if (!atogid(optarg, &config.gid)) {
-                    exit(EXIT_FAILURE);
-                }
-                if (config.send_creds == 0) {
-                    config.send_creds = 1;
                 }
                 break;
             default:

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 
 #include "creds.h"
@@ -23,7 +24,9 @@ static ssize_t Std_read(int fd, uint8_t *buf, size_t buflen);
 int main(int argc, char **argv) {
     bool listen = false;
     int proto = SOCK_STREAM;
-    const char *source = NULL;
+    // Make sure the source address is large enough to hold a valid socket
+    // address path.
+    char source[sizeof(((struct sockaddr_un *)0)->sun_path)+1] = {0};
     int fd;
     AncillaryCfg config;
     config.numfds = 0;
@@ -106,7 +109,15 @@ int main(int argc, char **argv) {
                 listen = true;
                 break;
             case 's':
-                source = optarg;
+                if (strlen(optarg) < sizeof(source)) {
+                    strcpy(source, optarg);
+                } else {
+                    fprintf(stderr,
+                            "source address path too long; must be shorter "
+                            "than %zu\n",
+                            sizeof(source));
+                    exit(EXIT_FAILURE);
+                }
                 break;
             case 'u':
                 proto = SOCK_DGRAM;
@@ -239,6 +250,9 @@ int main(int argc, char **argv) {
     }
 
     readwrite(clientfd, config);
+    if (strlen(source) > 0 && proto == SOCK_DGRAM) {
+        unlink(source);
+    }
     exit(EXIT_SUCCESS);
 usage_exit:
     fprintf(stderr, "Usage: %s [OPTIONS] path\n", argv[0]);
@@ -317,11 +331,9 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
         // Meanwhile, a POLLHUP on socket write means we just shutdown the
         // connection.
         if (pfds[neto].revents & POLLHUP) {
-            /* TODO: implement this with an option like -N?
             if (pfds[neto].fd != -1) {
                 shutdown(pfds[neto].fd, SHUT_WR);
             }
-            */
             pfds[neto].fd = -1;
         }
         // If the socket out is gone, no need to keep watching stdin.
@@ -357,6 +369,10 @@ static void readwrite(int net_fd, AncillaryCfg cfg) {
         if (pfds[neti].revents & POLLIN) {
             ret = Net_recv_and_print(pfds[neti].fd);
             if (ret == 0 || ret == -1) {
+                // On an orderly EOF, we nicely shutdown the socket.
+                if (ret == 0) {
+                    shutdown(pfds[neti].fd, SHUT_RD);
+                }
                 pfds[neti].fd = -1;
             } else if (ret == -2) {
                 pfds[neti].events = POLLIN;

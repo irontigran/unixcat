@@ -6,13 +6,14 @@
 /* Connect to a unix domain socket.
  *
  * dst is the pathname of a unix domain socket. src is the unix domain socket
- * to bind to before connection. If src is NULL, then it won't bind to a source
- * address.
+ * to bind to before connection. If src is an empty string, then either we
+ * won't use a source address, or will create a temporary socket to connect
+ * from and fill the src pointer with the path.
  *
  * Returns the new connected socket file descriptor, or a negative integer on
  * error.
  */
-int Net_conn(const char *dst, int proto, const char *src);
+int Net_conn(const char *dst, int proto, char *src);
 
 /* Create a unix domain socket and bind it to a path.
  *

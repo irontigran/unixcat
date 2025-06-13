@@ -16,7 +16,7 @@ ucat -s /tmp/src /tmp/dest
 .fi
 .PP
 
-unixcat will create the source socket in the filesystem, but will not delete it after the program exits.
+unixcat will delete the source address file on exit.
 
 .SS Listen Mode Options
 
@@ -29,6 +29,10 @@ to put unixcat in listening mode.
 The default is for unixcat to use stream sockets.
 You can set it to use datagram sockets with
 .B -u / --udp.
+Using unixcat in connect mode with datagram sockets requires a source address.
+If you don't specify
+.B -s,
+unixcat will create a temporary file to use as a source address and delete the file on exit.
 
 [Ancillary Messages]
 

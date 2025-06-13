@@ -17,7 +17,7 @@
 #include "printfd.h"
 #include "security.h"
 
-int Net_conn(const char *dst, int proto, const char *src) {
+int Net_conn(const char *dst, int proto, char *src) {
     struct sockaddr_un to;
     if (strlen(dst) >= sizeof(to.sun_path)) {
         errno = ENAMETOOLONG;
@@ -31,11 +31,11 @@ int Net_conn(const char *dst, int proto, const char *src) {
     // If provided a source address, we'll try to bind our socket to that
     // address before connecting.  If using a datagram socket, we _must_ have a
     // source address.
-    if (src != NULL || proto == SOCK_DGRAM) {
-        struct sockaddr_un from;
-        memset(&from, 0, sizeof(from));
-        from.sun_family = AF_UNIX;
-        if (src != NULL) {
+    struct sockaddr_un from;
+    memset(&from, 0, sizeof(from));
+    from.sun_family = AF_UNIX;
+    if (strlen(src) > 0 || proto == SOCK_DGRAM) {
+        if (strlen(src) > 0) {
             if (strlen(src) >= sizeof(from.sun_path)) {
                 errno = ENAMETOOLONG;
                 ret = -2;
@@ -43,18 +43,15 @@ int Net_conn(const char *dst, int proto, const char *src) {
             }
             strcpy(from.sun_path, src);
         } else {
-            char tmpsock[strlen("/tmp/ucat.XXXXXX") + 1];
-            memset(tmpsock, 0, sizeof(tmpsock));
-            // mktemp isn't safe, but we can't avoid the race condition by
-            // creating the file immediately; bind needs to create the socket
-            // in the filesystem. If the file is created in the meantime, bind
-            // will fail and we'll just exit out.
-            if (mktemp(tmpsock) == NULL) {
-                perror("mktemp");
+#define TEMPLATE "/tmp/ucat.XXXXXX"
+            strcpy(src, TEMPLATE);
+            if (mkstemp(src) < 0) {
+                perror("mkstemp");
                 ret = -3;
                 goto err;
             }
-            strcpy(from.sun_path, tmpsock);
+            strcpy(from.sun_path, src);
+            unlink(from.sun_path);
         }
 
         if (bind(fd, (struct sockaddr *)&from, sizeof(from)) < 0) {
@@ -73,6 +70,7 @@ int Net_conn(const char *dst, int proto, const char *src) {
     }
     return fd;
 err:
+    unlink(from.sun_path);
     tmperr = errno;
     close(fd);
     errno = tmperr;

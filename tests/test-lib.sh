@@ -58,6 +58,14 @@ send_twice_separately() {
         "import time; print('$msg', end='', flush=True); time.sleep(0.1); print('$msg', end='', flush=True)"
 }
 
+# Variant that makes sure to delay sending an EOF on stdin long enough to allow
+# UDP tests to pass.
+send_slowly() {
+    msg="$1"
+    python3 -c \
+        "import time; print('$msg', end='', flush=True); time.sleep(0.25)"
+}
+
 # send_twice separately requires python, but we can't check inside that
 # function because it's used in a pipeline. So check before calling
 # send_twice_separately using this.

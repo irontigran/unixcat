@@ -15,6 +15,7 @@ void usage(const char *progname) {
             "affect -l)\n"
             "  -u, --udp            use datagram sockets instead of stream "
             "sockets\n"
+            "      --seq            use sequenced-packet sockets\n"
             "  -f, --fd <path>      pass a file descriptor corresponding to "
             "<path>\n"
             "%s"

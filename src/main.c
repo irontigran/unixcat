@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     int proto = SOCK_STREAM;
     // Make sure the source address is large enough to hold a valid socket
     // address path.
-    char source[sizeof(((struct sockaddr_un *)0)->sun_path)+1] = {0};
+    char source[sizeof(((struct sockaddr_un *)0)->sun_path) + 1] = {0};
     int fd;
     AncillaryCfg config;
     config.numfds = 0;
@@ -51,6 +51,8 @@ int main(int argc, char **argv) {
                         .val = 's'},
         (struct option){
             .name = "udp", .has_arg = no_argument, .flag = NULL, .val = 'u'},
+        (struct option){
+            .name = "seq", .has_arg = no_argument, .flag = NULL, .val = 0},
         (struct option){.name = "fd",
                         .has_arg = required_argument,
                         .flag = NULL,
@@ -76,6 +78,14 @@ int main(int argc, char **argv) {
                 if (strcmp(opts.longopts[option_index].name, "version") == 0) {
                     version();
                     exit(EXIT_SUCCESS);
+                }
+                if (strcmp(opts.longopts[option_index].name, "seq") == 0) {
+                    if (proto == SOCK_DGRAM) {
+                        fprintf(stderr,
+                                "only one of -u / --udp and --seq allowed\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    proto = SOCK_SEQPACKET;
                 }
                 if (strcmp(opts.longopts[option_index].name, "pid") == 0) {
                     if (!atopid(optarg, &config.pid)) {
@@ -120,6 +130,11 @@ int main(int argc, char **argv) {
                 }
                 break;
             case 'u':
+                if (proto == SOCK_SEQPACKET) {
+                    fprintf(stderr,
+                            "only one of -u / --udp and --seq allowed\n");
+                    exit(EXIT_FAILURE);
+                }
                 proto = SOCK_DGRAM;
                 break;
             case 'f':

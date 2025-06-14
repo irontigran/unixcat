@@ -17,8 +17,16 @@ ucat.1: $(srcdir)/man/long.h2m $(srcdir)/src/help.c $(srcdir)/src/main.c
 	-$(HELP2MAN) --no-discard-stderr --no-info --output=$@ --include=$< ./ucat
 
 TESTS = tests/basic-send-recv.sh \
-		tests/pass-fds.sh
+		tests/pass-fds.sh \
+		tests/udp-basic-send-recv.sh \
+		tests/seq-basic-send-recv.sh \
+		tests/protocol-mutual-exclusion.sh \
+		tests/udp-pass-fds.sh
 dist_check_SCRIPTS = $(TESTS) tests/test-lib.sh
+if HAVE_SEQPACKET
+TESTS += tests/seq-pass-fds.sh
+else !HAVE_SEQPACKET
+endif !HAVE_SEQPACKET
 
 if HAVE_FGETPATH
 ucat_SOURCES += src/printfd/printfd_getpath.c
@@ -38,7 +46,12 @@ sending_tests = tests/creds-send-always-recv-always.sh \
 				tests/creds-send-once-recv-always.sh \
 				tests/creds-send-once-recv-once.sh
 nonsending_tests = tests/creds-send-none-recv-always.sh \
-				   tests/creds-send-none-recv-once.sh
+				   tests/creds-send-none-recv-once.sh \
+				   tests/udp-creds-recv.sh
+if HAVE_SEQPACKET
+nonsending_tests += tests/seq-creds-recv.sh
+else !HAVE_SEQPACKET
+endif !HAVE_SEQPACKET
 
 if SCM_CREDENTIALS
 ucat_SOURCES += src/creds/scmcredentials.c

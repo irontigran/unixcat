@@ -143,5 +143,18 @@ AC_COMPILE_IFELSE(
 AM_CONDITIONAL([HAVE_PASSSEC], [test "x$have_passsec" = "xyes"])
 # End SELinux security context tests.
 
+# Check if sequenced packets are supported.
+AC_MSG_CHECKING([for SOCK_SEQPACKET])
+AC_COMPILE_IFELSE(
+                  [AC_LANG_PROGRAM(
+                   [#include <sys/socket.h>],
+                   [int cmd = SOCK_SEQPACKET;])],
+                   [AC_MSG_RESULT([yes])
+                   have_seqpacket=yes],
+                   [AC_MSG_RESULT([no])
+                   have_seqpacket=no])
+AM_CONDITIONAL([HAVE_SEQPACKET], [test "x$have_seqpacket" = "xyes"])
+# End sequenced packet test.
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

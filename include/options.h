@@ -1,6 +1,7 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+#include <stdbool.h>
 #include <sys/types.h>
 
 typedef struct optbundle {

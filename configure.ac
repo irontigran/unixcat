@@ -12,7 +12,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 AC_PROG_CXX
 AM_MISSING_PROG(HELP2MAN, help2man)
-AM_MISSING_PROG(PYTHON3, python3)
 
 # Checks for libraries.
 
@@ -32,7 +31,7 @@ AC_TYPE_PID_T
 AC_TYPE_UID_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memmove memset socket strchr])
+AC_CHECK_FUNCS([memmove memset socket strchr strtol strtoul])
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC

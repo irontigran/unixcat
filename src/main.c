@@ -51,8 +51,10 @@ int main(int argc, char **argv) {
                         .val = 's'},
         (struct option){
             .name = "udp", .has_arg = no_argument, .flag = NULL, .val = 'u'},
+#ifdef HAVE_SEQPACKET
         (struct option){
             .name = "seq", .has_arg = no_argument, .flag = NULL, .val = 0},
+#endif
         (struct option){.name = "fd",
                         .has_arg = required_argument,
                         .flag = NULL,

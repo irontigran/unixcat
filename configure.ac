@@ -143,16 +143,45 @@ AC_COMPILE_IFELSE(
 AM_CONDITIONAL([HAVE_PASSSEC], [test "x$have_passsec" = "xyes"])
 # End SELinux security context tests.
 
-# Check if sequenced packets are supported.
-AC_MSG_CHECKING([for SOCK_SEQPACKET])
-AC_COMPILE_IFELSE(
-                  [AC_LANG_PROGRAM(
-                   [#include <sys/socket.h>],
-                   [int cmd = SOCK_SEQPACKET;])],
-                   [AC_MSG_RESULT([yes])
-                   have_seqpacket=yes],
-                   [AC_MSG_RESULT([no])
-                   have_seqpacket=no])
+# Check if sequenced packets are supported. Some OSes (Mac) define
+# SOCK_SEQPACKET but will throw an error on bind because the don't support
+# sequenced packets, so we have to actually run a program to check. If we're
+# cross-compiling, we resort to checking if we're compiling ofor Mac and if
+# not, we assume sequenced packets are supported.
+AC_MSG_NOTICE([checking for SOCK_SEQPACKET support])
+AC_RUN_IFELSE(
+              [AC_LANG_PROGRAM(
+               [#include <string.h>
+                #include <sys/socket.h>
+                #include <sys/un.h>
+                #include <unistd.h>],
+               [struct sockaddr_un un;
+                memset(&un, 0, sizeof(un));
+                un.sun_family = AF_UNIX;
+                strcpy(un.sun_path, "/tmp/sock.1a39nb");
+                int fd = socket(AF_UNIX, SOCK_SEQPACKET, 0);
+                int ret = bind(fd, (struct sockaddr *)&un, sizeof(un));
+                unlink(un.sun_path);
+                if (ret < 0) { return 1; }])],
+               [AC_MSG_CHECKING([runtime for SOCK_SEQPACKET])
+                AC_MSG_RESULT([yes])
+                have_seqpacket=yes],
+               [AC_MSG_CHECKING([runtime for SOCK_SEQPACKET])
+                AC_MSG_RESULT([no])
+                have_seqpacket=no],
+               [AC_MSG_NOTICE([cross compilation doesn't allow runtime check])
+                AC_MSG_CHECKING([heuristic - is the target Mac?])
+                AC_EGREP_CPP([apple_platform],
+                             [#ifdef __APPLE__
+                              apple_platform
+                              #endif],
+                             [AC_MSG_RESULT([yes])
+                              AC_MSG_NOTICE([Mac does not support SOCK_SEQPACKET])
+                              have_seqpacket=no],
+                             [AC_MSG_RESULT([no])
+                              AC_MSG_NOTICE([non-Mac systems probably support SOCK_SEQPACKET])
+                              have_seqpacket=yes])]
+           )
 AM_CONDITIONAL([HAVE_SEQPACKET], [test "x$have_seqpacket" = "xyes"])
 # End sequenced packet test.
 

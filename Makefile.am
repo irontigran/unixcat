@@ -19,12 +19,12 @@ ucat.1: $(srcdir)/man/long.h2m $(srcdir)/src/help.c $(srcdir)/src/main.c
 TESTS = tests/basic-send-recv.sh \
 		tests/pass-fds.sh \
 		tests/udp-basic-send-recv.sh \
-		tests/seq-basic-send-recv.sh \
 		tests/protocol-mutual-exclusion.sh \
 		tests/udp-pass-fds.sh
 dist_check_SCRIPTS = $(TESTS) tests/test-lib.sh
 if HAVE_SEQPACKET
-TESTS += tests/seq-pass-fds.sh
+TESTS += tests/seq-basic-send-recv.sh \
+		 tests/seq-pass-fds.sh
 else !HAVE_SEQPACKET
 endif !HAVE_SEQPACKET
 

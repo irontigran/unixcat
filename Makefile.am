@@ -6,10 +6,12 @@ ucat_SOURCES = src/fdstate.c src/help.c src/main.c src/net.c src/options.c \
 noinst_HEADERS = include/creds.h \
 				 include/fdstate.h \
 				 include/help.h \
-				 include/printfd.h \
 				 include/main.h \
 				 include/net.h \
-				 include/options.h
+				 include/options.h \
+				 include/printfd.h \
+				 include/security.h \
+				 include/seqpacket.h
 
 dist_man1_MANS = ucat.1
 CLEANFILES = ucat.1
@@ -22,6 +24,7 @@ TESTS = tests/basic-send-recv.sh \
 		tests/protocol-mutual-exclusion.sh \
 		tests/udp-pass-fds.sh
 dist_check_SCRIPTS = $(TESTS) tests/test-lib.sh
+
 if HAVE_SEQPACKET
 ucat_SOURCES += src/seqpacket/enabled.c
 TESTS += tests/seq-basic-send-recv.sh \
@@ -29,6 +32,13 @@ TESTS += tests/seq-basic-send-recv.sh \
 else !HAVE_SEQPACKET
 ucat_SOURCES += src/seqpacket/disabled.c
 endif !HAVE_SEQPACKET
+
+if HAVE_ABSTRACT
+ucat_SOURCES += src/net/abstract_enabled.c
+TESTS += tests/abstract-send-recv.sh
+else !HAVE_ABSTRACT
+ucat_SOURCES += src/net/abstract_disabled.c
+endif !HAVE_ABSTRACT
 
 if HAVE_FGETPATH
 ucat_SOURCES += src/printfd/printfd_getpath.c

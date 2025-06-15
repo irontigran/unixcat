@@ -26,7 +26,8 @@ void usage(const char *progname) {
             "Examples:\n"
             "  ucat /tmp/sock       -> connect to /tmp/sock\n"
             "  ucat -l /tmp/sock    -> listen on /tmp/sock\n",
-            progname, Seqpacket_help_message, Creds_help_message, Security_help_message);
+            progname, Seqpacket_help_message, Creds_help_message,
+            Security_help_message);
 }
 
 void version() { fprintf(stderr, "%s\n", VERSION); }

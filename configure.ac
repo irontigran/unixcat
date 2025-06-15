@@ -184,5 +184,43 @@ AC_RUN_IFELSE(
 AM_CONDITIONAL([HAVE_SEQPACKET], [test "x$have_seqpacket" = "xyes"])
 # End sequenced packet test.
 
+# Check if abstract sockets are supported.
+AC_MSG_NOTICE([checking for abstract socket support])
+AC_RUN_IFELSE(
+              [AC_LANG_PROGRAM(
+               [#include <sys/socket.h>
+                #include <string.h>
+                #include <sys/un.h>
+                ],
+               [[int s = socket(AF_UNIX, SOCK_STREAM, 0);
+                struct sockaddr_un un;
+                memset(&un, 0, sizeof(un));
+                un.sun_family = AF_UNIX;
+                un.sun_path[0] = '\0';
+                strcpy(un.sun_path + 1, "test");
+                int ret = bind(s, (struct sockaddr *)&un, sizeof(un.sun_family) + 1 + strlen("test"));
+                return ret;]])],
+              [AC_MSG_CHECKING([runtime for abstract sockets])
+               AC_MSG_RESULT([yes])
+               have_abstract=yes],
+              [AC_MSG_CHECKING([runtime for abstract sockets])
+               AC_MSG_RESULT([no])
+               have_abstract=no],
+              [AC_MSG_NOTICE([cross compilation doesn't allow runtime check])
+               AC_MSG_CHECKING([heuristic - is the target Linux?])
+               AC_EGREP_CPP([linux],
+                            [#ifdef __linux__
+                             linux
+                             #endif],
+                            [AC_MSG_RESULT([yes])
+                             AC_MSG_NOTICE([Linux supports abstract sockets])
+                             have_abstract=yes],
+                            [AC_MSG_RESULT([no])
+                             AC_MSG_NOTICE([non-Linux systems probably don't support abstract sockets])
+                             have_abstract=no])]
+              )
+AM_CONDITIONAL([HAVE_ABSTRACT], [test "x$have_abstract" = "xyes"])
+# End abstract socket test.
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

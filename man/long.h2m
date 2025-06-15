@@ -39,6 +39,24 @@ On systems that support it, you can also use sequenced-packet sockets using the
 option.
 Sequenced-packet sockets are connection-oriented, but preserve the boundaries between messages.
 
+[Abstract Sockets]
+
+Linux supports abstract unix domain sockets, which are not represented as a file on the file system.
+Under the covers, the address of an abstract socket starts with a null byte followed by arbitrary bytes.
+You can specify an abstract socket address to listen on or connect to on the command line by using '@' in place of the initial null byte.
+
+.PP
+.nf
+.RS
+ucat -l @dest
+.RE
+.fi
+.PP
+
+tells unixcat to listen on the abstract socket 'dest'.
+(If you try this on a system that does not support abstract sockets, the '@' will just be considered part of the filename.
+
+
 [Ancillary Messages]
 
 unixcat can send ancillary messages (sometimes known as control information) and will do its best to print ancillary messages to stdout when it receives them.

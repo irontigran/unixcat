@@ -17,12 +17,10 @@
 #include "printfd.h"
 #include "security.h"
 
+int fill_unix_sockaddr(struct sockaddr_un *addr, const char *path);
+
 int Net_conn(const char *dst, int proto, char *src) {
     struct sockaddr_un to;
-    if (strlen(dst) >= sizeof(to.sun_path)) {
-        errno = ENAMETOOLONG;
-        return -1;
-    }
 
     int fd, ret, tmperr;
     if ((fd = socket(AF_UNIX, proto, 0)) < 0) {
@@ -32,16 +30,14 @@ int Net_conn(const char *dst, int proto, char *src) {
     // address before connecting.  If using a datagram socket, we _must_ have a
     // source address.
     struct sockaddr_un from;
-    memset(&from, 0, sizeof(from));
-    from.sun_family = AF_UNIX;
+    int addrlen;
     if (strlen(src) > 0 || proto == SOCK_DGRAM) {
         if (strlen(src) > 0) {
-            if (strlen(src) >= sizeof(from.sun_path)) {
-                errno = ENAMETOOLONG;
+            addrlen = fill_unix_sockaddr(&from, src);
+            if (addrlen < 0) {
                 ret = -2;
                 goto err;
             }
-            strcpy(from.sun_path, src);
         } else {
 #define TEMPLATE "/tmp/ucat.XXXXXX"
             strcpy(src, TEMPLATE);
@@ -50,21 +46,26 @@ int Net_conn(const char *dst, int proto, char *src) {
                 ret = -3;
                 goto err;
             }
-            strcpy(from.sun_path, src);
+            addrlen = fill_unix_sockaddr(&from, src);
+            if (addrlen < 0) {
+                ret = -4;
+                goto err;
+            }
             unlink(from.sun_path);
         }
-
-        if (bind(fd, (struct sockaddr *)&from, sizeof(from)) < 0) {
-            ret = -4;
+        if (bind(fd, (struct sockaddr *)&from, addrlen) < 0) {
+            ret = -5;
             goto err;
         }
     }
 
-    memset(&to, 0, sizeof(to));
-    to.sun_family = AF_UNIX;
-    strcpy(to.sun_path, dst);
+    addrlen = fill_unix_sockaddr(&to, dst);
+    if (addrlen < 0) {
+        ret = -6;
+        goto err;
+    }
 
-    if (connect(fd, (struct sockaddr *)&to, sizeof(to)) < 0) {
+    if (connect(fd, (struct sockaddr *)&to, addrlen) < 0) {
         ret = -4;
         goto err;
     }
@@ -78,29 +79,20 @@ err:
 }
 
 int Net_bind(const char *path, int proto) {
-    struct sockaddr_un un;
-    if (strlen(path) >= sizeof(un.sun_path)) {
-        errno = ENAMETOOLONG;
-        return -1;
-    }
     int fd;
     if ((fd = socket(AF_UNIX, proto, 0)) < 0) {
-        return -2;
+        return -1;
     }
 
-    memset(&un, 0, sizeof(un));
-    un.sun_family = AF_UNIX;
-    strcpy(un.sun_path, path);
-    // Three separate options for setting the address length...
-    // APUE suggests the first, the man pages suggest either of the second or
-    // third.
-    // int len = offsetof(struct sockaddr_un, sun_path) + strlen(path);
-    // int len = offsetof(struct sockaddr_un, sun_path) + strlen(path) + 1;
-    // int len = sizeof(un);
-    // if (bind(fd, (struct sockaddr *)&un, len) < 0)
-
+    struct sockaddr_un un;
     int ret;
-    if (bind(fd, (struct sockaddr *)&un, sizeof(un)) < 0) {
+    int addrlen = fill_unix_sockaddr(&un, path);
+    if (addrlen < 0) {
+        ret = -2;
+        goto err;
+    }
+
+    if (bind(fd, (struct sockaddr *)&un, addrlen) < 0) {
         ret = -3;
         goto err;
     }

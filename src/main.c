@@ -17,6 +17,7 @@
 #include "net.h"
 #include "options.h"
 #include "security.h"
+#include "seqpacket.h"
 
 static void readwrite(int net_fd, AncillaryCfg cfg);
 static ssize_t Std_read(int fd, uint8_t *buf, size_t buflen);
@@ -51,10 +52,6 @@ int main(int argc, char **argv) {
                         .val = 's'},
         (struct option){
             .name = "udp", .has_arg = no_argument, .flag = NULL, .val = 'u'},
-#ifdef HAVE_SEQPACKET
-        (struct option){
-            .name = "seq", .has_arg = no_argument, .flag = NULL, .val = 0},
-#endif
         (struct option){.name = "fd",
                         .has_arg = required_argument,
                         .flag = NULL,
@@ -64,6 +61,7 @@ int main(int argc, char **argv) {
     opts.shortopts = NULL;
     opts.longopts = NULL;
     opts = Options_append(opts, default_shorts, default_longs);
+    opts = Seqpacket_register_options(opts);
     opts = Creds_register_options(opts);
     opts = Security_register_options(opts);
 

@@ -23,9 +23,11 @@ TESTS = tests/basic-send-recv.sh \
 		tests/udp-pass-fds.sh
 dist_check_SCRIPTS = $(TESTS) tests/test-lib.sh
 if HAVE_SEQPACKET
+ucat_SOURCES += src/seqpacket/enabled.c
 TESTS += tests/seq-basic-send-recv.sh \
 		 tests/seq-pass-fds.sh
 else !HAVE_SEQPACKET
+ucat_SOURCES += src/seqpacket/disabled.c
 endif !HAVE_SEQPACKET
 
 if HAVE_FGETPATH

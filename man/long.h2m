@@ -34,6 +34,11 @@ If you don't specify
 .B -s,
 unixcat will create a temporary file to use as a source address and delete the file on exit.
 
+On systems that support it, you can also use sequenced-packet sockets using the
+.B --seq
+option.
+Sequenced-packet sockets are connection-oriented, but preserve the boundaries between messages.
+
 [Ancillary Messages]
 
 unixcat can send ancillary messages (sometimes known as control information) and will do its best to print ancillary messages to stdout when it receives them.

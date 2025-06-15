@@ -4,6 +4,7 @@
 #include "creds.h"
 #include "help.h"
 #include "security.h"
+#include "seqpacket.h"
 
 void usage(const char *progname) {
     fprintf(stderr,
@@ -15,9 +16,7 @@ void usage(const char *progname) {
             "affect -l)\n"
             "  -u, --udp            use datagram sockets instead of stream "
             "sockets\n"
-#ifdef HAVE_SEQPACKET
-            "      --seq            use sequenced-packet sockets\n"
-#endif
+            "%s"
             "  -f, --fd <path>      pass a file descriptor corresponding to "
             "<path>\n"
             "%s"
@@ -27,7 +26,7 @@ void usage(const char *progname) {
             "Examples:\n"
             "  ucat /tmp/sock       -> connect to /tmp/sock\n"
             "  ucat -l /tmp/sock    -> listen on /tmp/sock\n",
-            progname, Creds_help_message, Security_help_message);
+            progname, Seqpacket_help_message, Creds_help_message, Security_help_message);
 }
 
 void version() { fprintf(stderr, "%s\n", VERSION); }

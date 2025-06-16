@@ -20,6 +20,7 @@ trap 'rm -f $socket $results $fdfile' EXIT
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 
+check_python || exit $skipped
 send_slowly "test1" | ./ucat --udp --fd "$fdfile" "$socket" || exit $hard_fail
 
 expected="test1@ANC: SCM_RIGHTS $fdfile"

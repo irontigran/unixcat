@@ -13,6 +13,7 @@ trap 'rm -f $socket $results' EXIT
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 
+check_python || exit $skipped
 send_slowly "test1" | ./ucat --udp "$socket" || exit $hard_fail
 
 check_exact_match "test1" "$results"

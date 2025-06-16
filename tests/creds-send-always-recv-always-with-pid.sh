@@ -16,7 +16,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: Linux allows you to change credentials when sending them. The output
 # should reflect the credentials provided on the command line.
 
-bg_hold_stdin_open "./ucat -lR always $socket > $results"
+sleep 0.25 | ./ucat -lR always "$socket" > "$results" &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

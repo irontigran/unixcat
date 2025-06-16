@@ -8,22 +8,6 @@ export fail=1
 export skipped=77
 export hard_fail=99
 
-# Usage: hold_stdin_open <command>
-# Run a command in the background while holding stdin open. Useful because we
-# want to run ucat listeners in the background and allow them to poll stdin
-# without being affected by foreground processes. If we don't do this, stdin is
-# closed, but then receives a POLLIN signal, causing ucat to try and read from
-# it and then exit.
-bg_hold_stdin_open() {
-    cmd="$1"
-    # only need to hold open stdin if it's a tty
-    if tty -s; then
-        eval "$cmd < $(tty) &"
-    else
-        eval "$cmd &"
-    fi
-}
-
 # Usage: check_listener_creation <pid> <socket>
 # Synchronization to make sure that a process (specified by pid) creates a unix
 # domain socket (specified by socket path) before moving on.

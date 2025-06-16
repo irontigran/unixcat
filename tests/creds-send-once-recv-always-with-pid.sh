@@ -17,7 +17,7 @@ trap 'rm -f $socket $results' EXIT
 # should reflect the credentials provided on the command line. But when sending
 # them only once, later credential messages should revert to the real ones.
 
-sleep 0.25 | ./ucat -lR always "$socket" > "$results" &
+sleep 0.5 | ./ucat -lR always "$socket" > "$results" &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

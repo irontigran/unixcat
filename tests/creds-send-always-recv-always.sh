@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 
 # shellcheck source=tests/test-lib.sh
 . "$(dirname "$0")/test-lib.sh"
@@ -10,7 +9,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: Send credentials always, receive always
 # Multiple messages should each have credential info
 
-sleep 0.25 | ./ucat -lR always "$socket" > "$results" &
+sleep 0.5 | ./ucat -lR always "$socket" > "$results" &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

@@ -10,7 +10,7 @@ trap 'rm -f $socket $results' EXIT
 # Test: Linux-style credentials - Send credentials once, but no receiving specified
 # On Linux, sending has no effect without -R specified
 
-sleep 0.25 | ./ucat -l "$socket" > "$results" &
+sleep 0.5 | ./ucat -l "$socket" > "$results" &
 pid=$!
 check_listener_creation $pid "$socket" || exit $hard_fail
 

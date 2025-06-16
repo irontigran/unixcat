@@ -54,7 +54,7 @@ ucat -l @dest
 .PP
 
 tells unixcat to listen on the abstract socket 'dest'.
-(If you try this on a system that does not support abstract sockets, the '@' will just be considered part of the filename.
+(If you try this on a system that does not support abstract sockets, the '@' will just be considered part of the filename.)
 
 
 [Ancillary Messages]

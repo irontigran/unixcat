@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.71])
-AC_INIT([ucat], [0.1.0],,, [https://github.com/irontigran/unixcat])
+AC_INIT([ucat], [1.0.0],,, [https://github.com/irontigran/unixcat])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_SRCDIR([config.h.in])

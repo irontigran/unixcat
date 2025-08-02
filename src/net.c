@@ -29,11 +29,11 @@ int fill_unix_sockaddr(struct sockaddr_un *addr, const char *path);
 
 int Net_conn(const char *dst, int proto, char *src) {
     struct sockaddr_un to;
-
     int fd, ret, tmperr;
     if ((fd = socket(AF_UNIX, proto, 0)) < 0) {
         return -1;
     }
+
     // If provided a source address, we'll try to bind our socket to that
     // address before connecting.  If using a datagram socket, we _must_ have a
     // source address.
@@ -124,11 +124,15 @@ int Net_accept(int fd) {
 }
 
 ssize_t Net_send(int fd, void *buf, size_t buflen, AncillaryCfg config) {
+    // The in-band data is simple, just stuff it into the iovec data
+    // structures.
     struct msghdr msg = {0};
     struct iovec iov = {.iov_base = buf, .iov_len = buflen};
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
+    // The out-of-band data is less simple; we have to allocate the correct
+    // amount of space and then fill the array of cmsg structs.
     int cmsgspace = 0;
     if (config.numfds > 0) {
         cmsgspace += CMSG_SPACE(sizeof(int) * config.numfds);
@@ -172,11 +176,12 @@ int Net_recv_and_print(int fd) {
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
-    // Even when providing this much space, it's still theoretically possible
-    // to provide a longer cmsg then we have space for. You'd have to work
-    // pretty hard to do it, and it is only possible on some BSDs where there
-    // are lots and lots of supplemental groups, so we'll still need to check
-    // for truncation later.
+    // We try to allocate enough space to receive the maximum number of control
+    // messages. But even when providing this much space, it's still
+    // theoretically possible to provide a longer cmsg then we have space for.
+    // You'd have to work pretty hard to do it, and it is only possible on some
+    // BSDs where there are lots and lots of supplemental groups, but we'll
+    // still need to check for truncation later.
     const size_t max_cmsg = CMSG_SPACE(sizeof(int) * SCM_MAX_FD) +
                             CMSG_SPACE(Creds_sizeof_send_struct()) +
                             CMSG_SPACE(NAME_MAX);
@@ -200,6 +205,10 @@ int Net_recv_and_print(int fd) {
             perror("reenabling creds");
             return -1;
         }
+
+        // We've chosen to write all the received in-band data before all of
+        // the control messages.  No particular reason for this, just
+        // convention.
         size_t written = 0;
         while (written < recvd) {
             size_t ret;
@@ -241,6 +250,7 @@ int Net_recv_and_print(int fd) {
             cmsg = CMSG_NXTHDR(&msg, cmsg);
         }
     }
+
     if (recvd < 0 &&
         (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
         return -2;

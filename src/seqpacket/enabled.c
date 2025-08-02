@@ -4,6 +4,9 @@
 #include "options.h"
 #include "seqpacket.h"
 
+/* seqpacket implementation for when seqpackets are supported.
+ */
+
 char *Seqpacket_help_message = "      --seq            use sequenced-packet sockets\n";
 
 OptBundle Seqpacket_register_options(OptBundle existing) {

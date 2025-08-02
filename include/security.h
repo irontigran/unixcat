@@ -15,6 +15,8 @@ extern char *Security_help_message;
 
 /* Append security specific options to the existing OptBundle; set to a no-op
  * to not provide any options.
+ *
+ * Returns the new OptBundle.
  */
 OptBundle Security_register_options(OptBundle existing);
 

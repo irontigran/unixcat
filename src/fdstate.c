@@ -5,9 +5,17 @@
 
 #include "fdstate.h"
 
-static int g_maxfds = 0;
+// A simple table, indexed by fd, storing whether a given fd is supposed to
+// receive credentials persistently or non-persistently. Should not be used
+// outside this module.
 static bool *g_persistence_tab = NULL;
+// The maximum number of fds the table can currently store.
+static int g_maxfds = 0;
 
+/* Expand the table so it can store the persistence or not of the specified fd.
+ *
+ * Returns 0 on success, -1 on failure.
+ */
 static int expand_tab(int fd) {
     size_t newsize = MAX(g_maxfds, fd);
     bool *tmp = realloc(g_persistence_tab, newsize * sizeof(bool));

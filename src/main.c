@@ -25,10 +25,11 @@ static ssize_t Std_read(int fd, uint8_t *buf, size_t buflen);
 int main(int argc, char **argv) {
     bool listen = false;
     int proto = SOCK_STREAM;
-    // Make sure the source address is large enough to hold a valid socket
-    // address path.
+
+    // Tricky C syntax to get the maximum length of a valid socket address
+    // without actually allocating a struct.
     char source[sizeof(((struct sockaddr_un *)0)->sun_path) + 1] = {0};
-    int fd;
+
     AncillaryCfg config;
     config.numfds = 0;
     config.send_creds = 0;
@@ -141,6 +142,7 @@ int main(int argc, char **argv) {
                 if (config.numfds >= SCM_MAX_FD) {
                     break;
                 }
+                int fd;
                 if ((fd = open(optarg, 0)) == -1) {
                     int tmp = errno;
                     fprintf(stderr, "couldn't open %s: ", optarg);

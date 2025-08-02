@@ -17,6 +17,14 @@
 #include "printfd.h"
 #include "security.h"
 
+/* Fill a sockaddr_un based on a path. If abstract sockets are enabled on this
+ * platform, a path that starts with '@' will be converted to a valid abstract
+ * socket address.
+ *
+ * addr is the sockaddr_un that will be filled. path is the path.
+ *
+ * Returns the length of the socket address, or a negative number on error.
+ */
 int fill_unix_sockaddr(struct sockaddr_un *addr, const char *path);
 
 int Net_conn(const char *dst, int proto, char *src) {

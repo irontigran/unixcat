@@ -7,6 +7,9 @@
 
 #include "printfd.h"
 
+/* print_fd implementation when the F_KINFO command is available.
+ */
+
 void PFD_print_fd(int fd) {
     struct kinfo_file kf;
     memset(&kf, 0, sizeof(kf));

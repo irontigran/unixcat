@@ -6,6 +6,9 @@
 
 #include "printfd.h"
 
+/* print_fd implementation when a procfs is available.
+ */
+
 void PFD_print_fd(int fd) {
     char *procfs;
     int ret = asprintf(&procfs, "/proc/self/fd/%d", fd);

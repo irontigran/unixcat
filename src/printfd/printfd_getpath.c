@@ -4,6 +4,9 @@
 
 #include "printfd.h"
 
+/* print_fd implementation when the F_GETPATH command is available.
+ */
+
 void PFD_print_fd(int fd) {
     char pathbuf[MAXPATHLEN] = {0};
     if (fcntl(fd, F_GETPATH, &pathbuf) < 0) {

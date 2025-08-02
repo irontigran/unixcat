@@ -3,6 +3,10 @@
 
 #include "printfd.h"
 
+/* Default implementation: no special facilities available and we have to rely
+ * on whatever fstat returns.
+ */
+
 void PFD_print_fd(int fd) {
     struct stat sb;
     if (fstat(fd, &sb) < 0) {

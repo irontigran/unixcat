@@ -13,6 +13,12 @@
 #include "fdstate.h"
 #include "options.h"
 
+/* Partial credential passing implementation for BSDs that don't have a
+ * persistent credential passing socket option. (Sending credential functions
+ * are implemented elsewhere because they very separately from persistent vs
+ * non-persistent socket options.)
+ */
+
 int Creds_turn_on_once(int fd) {
     int on = 1;
     return setsockopt(fd, SOL_LOCAL, LOCAL_CREDS, &on, sizeof(int));
@@ -24,6 +30,8 @@ int Creds_turn_on_persistent(int fd) {
 }
 
 int Creds_confirm_recv_settings(int fd) {
+    // If we want credential passing to happen for every message, we need to
+    // turn the socket option back on after every recvmsg call.
     if (!FdState_is_persistent(fd)) {
         return 0;
     }

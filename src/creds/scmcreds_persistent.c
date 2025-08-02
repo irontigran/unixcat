@@ -7,6 +7,10 @@
 
 #include "creds.h"
 
+/* Partial credential module impementation for BSDs that include a persistent
+ * credential passing socket option.
+ */
+
 int Creds_turn_on_once(int fd) {
     int on = 1;
     return setsockopt(fd, SOL_LOCAL, LOCAL_CREDS, &on, sizeof(int));

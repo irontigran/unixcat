@@ -11,6 +11,9 @@
 #include "main.h"
 #include "options.h"
 
+/* Linux-style credential passing implementation.
+ */
+
 char *Creds_help_message =
     "  -R, --recv-creds [once|always]   receive peer credentials with every "
     "message or just the first one\n"
@@ -58,6 +61,8 @@ int Creds_turn_on_persistent(int fd) {
 }
 
 int Creds_confirm_recv_settings(int fd) {
+    // Linux's SO_PASSCRED option turns on credential passing for every
+    // message.  If that's what we want, do nothing. Otherwise, turn it off.
     if (FdState_is_persistent(fd)) {
         return 0;
     }

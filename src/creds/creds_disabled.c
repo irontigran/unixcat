@@ -4,6 +4,10 @@
 #include "main.h"
 #include "options.h"
 
+/* Implementation of the creds module when the OS has disallowed credential
+ * passing.  Everything is a no-op.
+ */
+
 char *Creds_help_message = "";
 
 OptBundle Creds_register_options(OptBundle existing) { return existing; }

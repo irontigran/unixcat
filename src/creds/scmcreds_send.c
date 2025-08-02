@@ -10,6 +10,10 @@
 #include "main.h"
 #include "options.h"
 
+/* Partial credential module implementation for BSDs that allow sending
+ * credential messages. (Not just receiving.)
+ */
+
 char *Creds_help_message =
     "  -R, --recv-creds [once|always]   receive peer credentials with every "
     "message or just the first one\n"

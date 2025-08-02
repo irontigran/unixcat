@@ -195,6 +195,9 @@ int main(int argc, char **argv) {
             perror("on bind");
             exit(EXIT_FAILURE);
         }
+
+        // Set the credential options on the socket for the first of two times.
+        // See below.
         if (config.recv_creds > 0) {
             if (Creds_turn_on_once(listenfd) < 0) {
                 perror("enabling creds once");
@@ -207,6 +210,7 @@ int main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
         }
+
         if (proto != SOCK_DGRAM) {
             // For connection-oriented sockets, we have to listen and accept a
             // connection to get a socket to send data on.
@@ -259,6 +263,7 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
+
     if (config.security) {
         if (Security_turn_on_passsec(clientfd) < 0) {
             perror("enabling passsec");
@@ -267,9 +272,12 @@ int main(int argc, char **argv) {
     }
 
     readwrite(clientfd, config);
+
+    // Remember to delete any temporary datagram sockets we've created.
     if (strlen(source) > 0 && proto == SOCK_DGRAM) {
         unlink(source);
     }
+
     exit(EXIT_SUCCESS);
 usage_exit:
     fprintf(stderr, "Usage: %s [OPTIONS] path\n", argv[0]);
@@ -287,6 +295,13 @@ static int set_nonblocking(int fd) {
     return 0;
 }
 
+/* The main loop for reading from and writing to the socket. Reads from stdin,
+ * writes to the socket; reads from the socket, writes to stdout.
+ *
+ * net_fd is the socket. cfg is the bag of configuration variables that
+ * describes how we handle ancillary messages.
+ *
+ */
 static void readwrite(int net_fd, AncillaryCfg cfg) {
     const size_t buflen = 1024;
     uint8_t stdinbuf[buflen];

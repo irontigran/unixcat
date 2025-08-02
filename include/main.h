@@ -4,10 +4,13 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-// Linux-specific limit, but 253 file descriptors should be enough for most.
+// The maximum number of file descriptors we can send in a single control
+// message.  Linux-specific limit, but 253 file descriptors should be enough
+// for most.
 #define SCM_MAX_FD 253
 
-/* Controls the behavior around sending and receiving ancillary messages.
+/* Bundle of config variables that controls the behavior around sending and
+ * receiving ancillary messages.
  */
 typedef struct ancillary_cfg {
     // The list of file descriptors to send. Set numfds to 0 if there aren't
